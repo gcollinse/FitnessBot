@@ -1,6 +1,7 @@
 """
 Fitness Data Collector
 Fetches data from Whoop, Hevy, and Strava APIs
+Uses Redis to persist rotating Whoop refresh token
 """
 
 import os
@@ -15,44 +16,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 CACHE_DURATION = 30 * 60  # 30 minutes in seconds
-
-RAILWAY_TOKEN = os.getenv("RAILWAY_TOKEN")
-RAILWAY_SERVICE_ID = "b9bee61e-d784-4786-8b38-a1cf2166494e"
-RAILWAY_ENVIRONMENT_ID = "ebbd9ac9-a0da-4871-9773-5c978c610e35"
-
-
-async def update_railway_variable(name: str, value: str):
-    """Update an environment variable in Railway"""
-    if not RAILWAY_TOKEN:
-        logger.warning("No RAILWAY_TOKEN set, cannot update variable")
-        return
-    try:
-        query = """
-        mutation variableUpsert($input: VariableUpsertInput!) {
-            variableUpsert(input: $input)
-        }
-        """
-        variables = {
-            "input": {
-                "serviceId": RAILWAY_SERVICE_ID,
-                "environmentId": RAILWAY_ENVIRONMENT_ID,
-                "name": name,
-                "value": value
-            }
-        }
-        async with aiohttp.ClientSession() as session:
-            resp = await session.post(
-                "https://backboard.railway.com/graphql/v2",
-                json={"query": query, "variables": variables},
-                headers={"Authorization": f"Bearer {RAILWAY_TOKEN}", "Content-Type": "application/json"}
-            )
-            result = await resp.json()
-            if "errors" in result:
-                logger.error(f"Railway variable update error: {result['errors']}")
-            else:
-                logger.info(f"Railway variable {name} updated successfully")
-    except Exception as e:
-        logger.error(f"Failed to update Railway variable: {e}")
 
 
 class FitnessDataCollector:
@@ -75,6 +38,42 @@ class FitnessDataCollector:
         # Hevy
         self.hevy_api_key = os.getenv("HEVY_API_KEY")
 
+        # Redis
+        self.redis_url = os.getenv("REDIS_URL")
+        self._redis = None
+
+    async def _get_redis(self):
+        if self._redis is None and self.redis_url:
+            try:
+                import redis.asyncio as redis
+                self._redis = redis.from_url(self.redis_url, decode_responses=True)
+                logger.info("Redis connected")
+            except Exception as e:
+                logger.error(f"Redis connection failed: {e}")
+        return self._redis
+
+    async def _get_stored_whoop_token(self) -> Optional[str]:
+        r = await self._get_redis()
+        if r:
+            try:
+                token = await r.get("whoop_refresh_token")
+                if token:
+                    logger.info("Loaded Whoop refresh token from Redis")
+                    return token
+            except Exception as e:
+                logger.error(f"Redis get error: {e}")
+        return self.whoop_refresh_token
+
+    async def _save_whoop_token(self, token: str):
+        self.whoop_refresh_token = token
+        r = await self._get_redis()
+        if r:
+            try:
+                await r.set("whoop_refresh_token", token)
+                logger.info("Whoop refresh token saved to Redis")
+            except Exception as e:
+                logger.error(f"Redis save error: {e}")
+
     def clear_cache(self):
         self._cache = {}
         self._cache_time = {}
@@ -89,7 +88,6 @@ class FitnessDataCollector:
         self._cache_time[key] = time.time()
 
     async def get_all_data(self) -> dict:
-        """Fetch all fitness data concurrently"""
         whoop_task = self._get_whoop_data()
         strava_task = self._get_strava_data()
         hevy_task = self._get_hevy_data()
@@ -114,12 +112,15 @@ class FitnessDataCollector:
         if self._whoop_access_token:
             return self._whoop_access_token
 
+        # Load latest refresh token from Redis
+        refresh_token = await self._get_stored_whoop_token()
+
         async with aiohttp.ClientSession() as session:
             resp = await session.post(
                 "https://api.prod.whoop.com/oauth/oauth2/token",
                 data={
                     "grant_type": "refresh_token",
-                    "refresh_token": self.whoop_refresh_token,
+                    "refresh_token": refresh_token,
                     "client_id": self.whoop_client_id,
                     "client_secret": self.whoop_client_secret,
                     "scope": "offline read:recovery read:cycles read:workout read:sleep read:profile read:body_measurement"
@@ -132,10 +133,7 @@ class FitnessDataCollector:
                 raise Exception(f"Whoop auth failed: {data.get('error_description', data.get('error'))}")
             self._whoop_access_token = data.get("access_token")
             if "refresh_token" in data:
-                new_token = data["refresh_token"]
-                self.whoop_refresh_token = new_token
-                logger.info("Whoop refresh token rotated — saving to Railway")
-                await update_railway_variable("WHOOP_REFRESH_TOKEN", new_token)
+                await self._save_whoop_token(data["refresh_token"])
             return self._whoop_access_token
 
     async def _get_whoop_data(self) -> dict:
@@ -147,21 +145,21 @@ class FitnessDataCollector:
         base = "https://api.prod.whoop.com/developer/v1"
 
         async with aiohttp.ClientSession(headers=headers) as session:
-            end = datetime.utcnow()
-            start = end - timedelta(days=7)
-            start_str = start.strftime("%Y-%m-%dT%H:%M:%SZ")
-            end_str = end.strftime("%Y-%m-%dT%H:%M:%SZ")
-
             async def fetch(url):
                 r = await session.get(url)
-                return await r.json()
+                text = await r.text()
+                try:
+                    return json.loads(text)
+                except Exception:
+                    logger.error(f"Whoop fetch error for {url}: {text}")
+                    return {}
 
-        recovery, cycles, workouts, sleep = await asyncio.gather(
-            fetch(f"{base}/recovery?limit=7"),
-            fetch(f"{base}/cycle?limit=7"),
-            fetch(f"{base}/workout?limit=7"),
-            fetch(f"{base}/sleep?limit=7"),
-        )
+            recovery, cycles, workouts, sleep = await asyncio.gather(
+                fetch(f"{base}/recovery?limit=7"),
+                fetch(f"{base}/cycle?limit=7"),
+                fetch(f"{base}/workout?limit=7"),
+                fetch(f"{base}/sleep?limit=7"),
+            )
 
         result = {
             "recovery_records": recovery.get("records", []),
@@ -270,7 +268,12 @@ class FitnessDataCollector:
 
         async with aiohttp.ClientSession(headers=headers) as session:
             r = await session.get(f"{base}/workouts?page=1&pageSize=20")
-            data = await r.json()
+            text = await r.text()
+            logger.info(f"Hevy response: {text[:200]}")
+            try:
+                data = json.loads(text)
+            except Exception:
+                return {"error": f"Hevy returned invalid response: {text[:100]}"}
 
         workouts = data.get("workouts", [])
 
