@@ -142,12 +142,13 @@ class FitnessDataCollector:
 
         token = await self._get_whoop_access_token()
         headers = {"Authorization": f"Bearer {token}"}
-        base = "https://api.prod.whoop.com/developer/v1"
+        base = "https://api.prod.whoop.com/developer/v2"
 
         async with aiohttp.ClientSession(headers=headers) as session:
             async def fetch(url):
                 r = await session.get(url)
                 text = await r.text()
+                logger.info(f"Whoop fetch {url}: {text[:200]}")
                 try:
                     return json.loads(text)
                 except Exception:
@@ -157,8 +158,8 @@ class FitnessDataCollector:
             recovery, cycles, workouts, sleep = await asyncio.gather(
                 fetch(f"{base}/recovery?limit=7"),
                 fetch(f"{base}/cycle?limit=7"),
-                fetch(f"{base}/workout?limit=7"),
-                fetch(f"{base}/sleep?limit=7"),
+                fetch(f"{base}/activity/workout?limit=7"),
+                fetch(f"{base}/activity/sleep?limit=7"),
             )
 
         result = {
