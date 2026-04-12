@@ -88,10 +88,14 @@ class FitnessDataCollector:
                 }
             )
             data = await resp.json()
+            logger.info(f"Whoop token response keys: {list(data.keys())}")
+            if "error" in data:
+                logger.error(f"Whoop token error: {data}")
+                raise Exception(f"Whoop auth failed: {data.get('error_description', data.get('error'))}")
             self._whoop_access_token = data.get("access_token")
-            # Update refresh token if new one provided
             if "refresh_token" in data:
-                logger.info("Whoop provided new refresh token — update WHOOP_REFRESH_TOKEN in your .env")
+                self.whoop_refresh_token = data["refresh_token"]
+                logger.info("Whoop refresh token rotated and saved in memory")
             return self._whoop_access_token
 
     async def _get_whoop_data(self) -> dict:
