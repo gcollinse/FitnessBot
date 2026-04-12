@@ -156,12 +156,12 @@ class FitnessDataCollector:
                 r = await session.get(url)
                 return await r.json()
 
-            recovery, cycles, workouts, sleep = await asyncio.gather(
-                fetch(f"{base}/recovery?start={start_str}&end={end_str}"),
-                fetch(f"{base}/cycle?start={start_str}&end={end_str}"),
-                fetch(f"{base}/workout?start={start_str}&end={end_str}"),
-                fetch(f"{base}/sleep?start={start_str}&end={end_str}"),
-            )
+        recovery, cycles, workouts, sleep = await asyncio.gather(
+            fetch(f"{base}/recovery?limit=7"),
+            fetch(f"{base}/cycle?limit=7"),
+            fetch(f"{base}/workout?limit=7"),
+            fetch(f"{base}/sleep?limit=7"),
+        )
 
         result = {
             "recovery_records": recovery.get("records", []),
