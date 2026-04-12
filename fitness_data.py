@@ -268,7 +268,7 @@ class FitnessDataCollector:
         base = "https://api.hevyapp.com/v1"
 
         async with aiohttp.ClientSession(headers=headers) as session:
-            r = await session.get(f"{base}/workouts?page=1&pageSize=20")
+            r = await session.get(f"{base}/workouts?page=1&pageSize=10")
             text = await r.text()
             logger.info(f"Hevy response: {text[:200]}")
             try:
