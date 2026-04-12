@@ -16,6 +16,44 @@ logger = logging.getLogger(__name__)
 
 CACHE_DURATION = 30 * 60  # 30 minutes in seconds
 
+RAILWAY_TOKEN = os.getenv("RAILWAY_TOKEN")
+RAILWAY_SERVICE_ID = "b9bee61e-d784-4786-8b38-a1cf2166494e"
+RAILWAY_ENVIRONMENT_ID = "ebbd9ac9-a0da-4871-9773-5c978c610e35"
+
+
+async def update_railway_variable(name: str, value: str):
+    """Update an environment variable in Railway"""
+    if not RAILWAY_TOKEN:
+        logger.warning("No RAILWAY_TOKEN set, cannot update variable")
+        return
+    try:
+        query = """
+        mutation variableUpsert($input: VariableUpsertInput!) {
+            variableUpsert(input: $input)
+        }
+        """
+        variables = {
+            "input": {
+                "serviceId": RAILWAY_SERVICE_ID,
+                "environmentId": RAILWAY_ENVIRONMENT_ID,
+                "name": name,
+                "value": value
+            }
+        }
+        async with aiohttp.ClientSession() as session:
+            resp = await session.post(
+                "https://backboard.railway.com/graphql/v2",
+                json={"query": query, "variables": variables},
+                headers={"Authorization": f"Bearer {RAILWAY_TOKEN}", "Content-Type": "application/json"}
+            )
+            result = await resp.json()
+            if "errors" in result:
+                logger.error(f"Railway variable update error: {result['errors']}")
+            else:
+                logger.info(f"Railway variable {name} updated successfully")
+    except Exception as e:
+        logger.error(f"Failed to update Railway variable: {e}")
+
 
 class FitnessDataCollector:
     def __init__(self):
@@ -94,8 +132,10 @@ class FitnessDataCollector:
                 raise Exception(f"Whoop auth failed: {data.get('error_description', data.get('error'))}")
             self._whoop_access_token = data.get("access_token")
             if "refresh_token" in data:
-                self.whoop_refresh_token = data["refresh_token"]
-                logger.info("Whoop refresh token rotated and saved in memory")
+                new_token = data["refresh_token"]
+                self.whoop_refresh_token = new_token
+                logger.info("Whoop refresh token rotated — saving to Railway")
+                await update_railway_variable("WHOOP_REFRESH_TOKEN", new_token)
             return self._whoop_access_token
 
     async def _get_whoop_data(self) -> dict:
@@ -107,7 +147,6 @@ class FitnessDataCollector:
         base = "https://api.prod.whoop.com/developer/v1"
 
         async with aiohttp.ClientSession(headers=headers) as session:
-            # Last 7 days
             end = datetime.utcnow()
             start = end - timedelta(days=7)
             start_str = start.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -131,7 +170,6 @@ class FitnessDataCollector:
             "sleep_records": sleep.get("records", []),
         }
 
-        # Pull out today's key stats for easy access
         if result["recovery_records"]:
             latest = result["recovery_records"][0]
             score = latest.get("score", {})
@@ -176,7 +214,6 @@ class FitnessDataCollector:
         base = "https://www.strava.com/api/v3"
 
         async with aiohttp.ClientSession(headers=headers) as session:
-            # Last 30 days of activities
             after = int((datetime.utcnow() - timedelta(days=30)).timestamp())
 
             async def fetch(url):
@@ -188,7 +225,6 @@ class FitnessDataCollector:
                 fetch(f"{base}/athlete"),
             )
 
-        # Filter to runs only and simplify
         runs = [
             {
                 "name": a.get("name"),
@@ -233,7 +269,6 @@ class FitnessDataCollector:
         base = "https://api.hevyapp.com/v1"
 
         async with aiohttp.ClientSession(headers=headers) as session:
-            # Get recent workouts (last 30 days, page 1)
             r = await session.get(f"{base}/workouts?page=1&pageSize=20")
             data = await r.json()
 
