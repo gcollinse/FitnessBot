@@ -109,8 +109,6 @@ class FitnessDataCollector:
     # ─────────────────────────────────────────────
 
     async def _get_whoop_access_token(self) -> Optional[str]:
-        if self._whoop_access_token:
-            return self._whoop_access_token
 
         # Load latest refresh token from Redis
         refresh_token = await self._get_stored_whoop_token()
@@ -145,15 +143,18 @@ class FitnessDataCollector:
         base = "https://api.prod.whoop.com/developer/v2"
 
         async with aiohttp.ClientSession(headers=headers) as session:
-            async def fetch(url):
+           async def fetch(url):
                 r = await session.get(url)
                 text = await r.text()
                 logger.info(f"Whoop fetch {url}: {text[:200]}")
-                try:
-                    return json.loads(text)
-                except Exception:
-                    logger.error(f"Whoop fetch error for {url}: {text}")
-                    return {}
+                if "Authorization was not valid" in text or r.status == 401:
+                    self._whoop_access_token = None
+                    raise Exception("Whoop token expired")
+            try:
+                return json.loads(text)
+            except Exception:
+                logger.error(f"Whoop fetch error for {url}: {text}")
+                return {}
 
             recovery, cycles, workouts, sleep = await asyncio.gather(
                 fetch(f"{base}/recovery?limit=7"),
