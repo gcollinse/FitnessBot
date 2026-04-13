@@ -13,8 +13,8 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from sqlalchemy.orm import Session
 from database import SessionLocal, UserTokens, Conversation, User, init_db
-from fitness_data_multi import FitnessDataCollector
-from claude_chat_multi import ClaudeChat
+from fitness_data import FitnessDataCollector
+from claude_chat import ClaudeChat
 from datetime import datetime
 
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
