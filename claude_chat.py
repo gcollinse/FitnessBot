@@ -76,7 +76,7 @@ class ClaudeChat:
                     "content-type": "application/json",
                 },
                 json={
-                    "model": "claude-opus-4-5",
+                    "model": "claude-haiku-4-5-20251001",
                     "max_tokens": 1024,
                     "system": system,
                     "messages": conversation_history,
