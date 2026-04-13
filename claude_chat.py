@@ -7,7 +7,7 @@ import os
 import json
 import aiohttp
 import logging
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +63,7 @@ class ClaudeChat:
 
     async def chat(self, conversation_history: list, fitness_data: dict) -> str:
         system = SYSTEM_PROMPT.format(
-            date=datetime.now().strftime("%A, %B %d, %Y %I:%M %p MST"),
+            date=datetime.now(tz=timezone(timedelta(hours=-7))).strftime("%A, %B %d, %Y %I:%M %p MST"),
             fitness_data=json.dumps(fitness_data, indent=2, default=str)
         )
 
