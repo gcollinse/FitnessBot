@@ -36,6 +36,9 @@ Guidelines:
 - Calories burned in kcal (calories), never kilojoules
 - Pace in minutes per mile, not per km
 - Height in feet/inches, weight in pounds
+- Use Telegram markdown formatting: *bold* for important terms and headers (single asterisk, not double)
+- For extra emphasis use *bold* text — Telegram does not support underline, so just use bold for the most important things
+- Never use ** double asterisks — Telegram renders * single asterisks as bold
 
 Today's date: {date}
 
