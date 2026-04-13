@@ -1,6 +1,3 @@
-
-Copy
-
 """
 Fitness Data Collector
 Fetches data from Whoop, Hevy, and Strava APIs
