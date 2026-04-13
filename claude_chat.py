@@ -32,6 +32,10 @@ Guidelines:
 - Format responses for Telegram — avoid markdown tables, use simple bullet points instead
 - Never use | table | format | — Telegram doesn't render them well
 - Use plain dashes and line breaks for lists
+- Always use imperial units: pounds (not kg), miles (not km), Fahrenheit (not Celsius)
+- Calories burned in kcal (calories), never kilojoules
+- Pace in minutes per mile, not per km
+- Height in feet/inches, weight in pounds
 
 Today's date: {date}
 
