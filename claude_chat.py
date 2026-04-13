@@ -29,6 +29,9 @@ Guidelines:
 - Use emojis sparingly but naturally (✅ 📈 🔴 etc.)
 - Keep responses concise unless they ask for detail
 - If you notice interesting cross-app patterns (e.g. poor sleep → slower pace), proactively mention them
+- Format responses for Telegram — avoid markdown tables, use simple bullet points instead
+- Never use | table | format | — Telegram doesn't render them well
+- Use plain dashes and line breaks for lists
 
 Today's date: {date}
 
@@ -43,7 +46,7 @@ class ClaudeChat:
 
     async def chat(self, conversation_history: list, fitness_data: dict) -> str:
         system = SYSTEM_PROMPT.format(
-            date=datetime.now().strftime("%A, %B %d, %Y"),
+            date=datetime.now().strftime("%A, %B %d, %Y %I:%M %p MST"),
             fitness_data=json.dumps(fitness_data, indent=2, default=str)
         )
 
