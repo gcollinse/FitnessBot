@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitStack AI — Stack your fitness apps</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --yellow: #F5C842; --yellow-dark: #B8860B; --black: #111111; --gray: #F7F6F3; --white: #ffffff; }
+  body { font-family: 'Barlow', sans-serif; background: var(--white); color: var(--black); }
+  nav { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 3rem; border-bottom: 1px solid #EBEBEB; }
+  .logo { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 1.5rem; }
+  .logo span { color: var(--yellow-dark); }
+  .hero { max-width: 600px; margin: 4rem auto; padding: 0 2rem; text-align: center; }
+  h1 { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 3.5rem; line-height: 1; margin-bottom: 1rem; }
+  h1 em { font-style: normal; color: var(--yellow-dark); }
+  .sub { font-size: 1.1rem; color: #555; margin-bottom: 3rem; line-height: 1.6; }
+  .card { background: var(--gray); border-radius: 16px; padding: 2rem; border: 1px solid #EBEBEB; text-align: left; }
+  .step-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #888; font-weight: 600; margin-bottom: 1.5rem; }
+  .input-group { margin-bottom: 1rem; }
+  .input-label { font-size: 0.8rem; font-weight: 600; color: #555; margin-bottom: 0.4rem; display: block; }
+  input[type="text"] { width: 100%; padding: 0.75rem 1rem; border: 1px solid #DDD; border-radius: 8px; font-size: 0.95rem; font-family: 'Barlow', sans-serif; background: white; }
+  input[type="text"]:focus { outline: none; border-color: var(--yellow-dark); }
+  .connect-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; background: white; border: 1px solid #DDD; border-radius: 8px; padding: 0.8rem 1rem; cursor: pointer; margin-bottom: 0.75rem; font-family: 'Barlow', sans-serif; font-size: 0.95rem; font-weight: 500; transition: border-color 0.15s; }
+  .connect-btn:hover { border-color: #999; }
+  .connect-btn.connected { border-color: #22C55E; background: #F0FDF4; }
+  .connect-btn-left { display: flex; align-items: center; gap: 10px; }
+  .app-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .connect-status { font-size: 0.78rem; font-weight: 600; color: #888; }
+  .connect-status.done { color: #22C55E; }
+  .divider { border: none; border-top: 1px solid #E5E5E5; margin: 1.25rem 0; }
+  .cta-btn { width: 100%; background: var(--black); color: var(--yellow); border: none; border-radius: 8px; padding: 1rem; font-size: 1rem; font-weight: 700; cursor: pointer; font-family: 'Barlow', sans-serif; margin-top: 0.5rem; transition: background 0.15s; }
+  .cta-btn:hover { background: #333; }
+  .cta-btn:disabled { background: #999; color: #CCC; cursor: not-allowed; }
+  .msg { padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; margin-top: 1rem; display: none; }
+  .msg.success { background: #F0FDF4; border: 1px solid #86EFAC; color: #166534; display: block; }
+  .msg.error { background: #FEF2F2; border: 1px solid #FCA5A5; color: #991B1B; display: block; }
+  .note { font-size: 0.8rem; color: #888; margin-top: 0.5rem; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">FitStack<span> AI</span></div>
+</nav>
+
+<div class="hero">
+  <h1>Stack your<br>fitness apps.<br><em>One AI.</em></h1>
+  <p class="sub">Connect Whoop, Strava, and Hevy. Ask your personal AI anything about your recovery, training, and nutrition.</p>
+
+  <div class="card">
+    <div class="step-label">Step 1 — Enter your Telegram username</div>
+    <div class="input-group">
+      <label class="input-label">Telegram Username</label>
+      <input type="text" id="telegram-username" placeholder="@yourusername" />
+      <p class="note">You must have already started a chat with <strong>@FitStackAI_bot</strong> on Telegram first.</p>
+    </div>
+    <button class="cta-btn" id="start-btn" onclick="startSignup()">Continue →</button>
+
+    <div id="connect-section" style="display:none;">
+      <hr class="divider">
+      <div class="step-label">Step 2 — Connect your apps</div>
+
+      <button class="connect-btn" id="whoop-btn" onclick="connectWhoop()">
+        <div class="connect-btn-left">
+          <div class="app-dot" style="background:#FF3B5C"></div>
+          Connect Whoop
+        </div>
+        <span class="connect-status" id="whoop-status">Connect →</span>
+      </button>
+
+      <button class="connect-btn" id="strava-btn" onclick="connectStrava()">
+        <div class="connect-btn-left">
+          <div class="app-dot" style="background:#FC4C02"></div>
+          Connect Strava
+        </div>
+        <span class="connect-status" id="strava-status">Connect →</span>
+      </button>
+
+      <div class="input-group" style="margin-top:0.75rem;">
+        <label class="input-label">Hevy API Key (optional)</label>
+        <input type="text" id="hevy-key" placeholder="Your Hevy API key" />
+        <p class="note">Found in Hevy app → Settings → API Key (requires Hevy Pro)</p>
+      </div>
+
+      <hr class="divider">
+      <div class="step-label">Step 3 — Launch</div>
+      <button class="cta-btn" id="launch-btn" onclick="finishSignup()">Launch my FitStack AI →</button>
+    </div>
+
+    <div class="msg" id="result-msg"></div>
+  </div>
+</div>
+
+<script>
+  let userId = null;
+
+  async function startSignup() {
+    const username = document.getElementById('telegram-username').value.trim().replace('@', '');
+    if (!username) { showMsg('Please enter your Telegram username', 'error'); return; }
+
+    document.getElementById('start-btn').disabled = true;
+    document.getElementById('start-btn').textContent = 'Setting up...';
+
+    try {
+      const resp = await fetch('/api/start-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ telegram_username: username })
+      });
+      const data = await resp.json();
+      userId = data.user_id;
+      document.getElementById('connect-section').style.display = 'block';
+      document.getElementById('start-btn').textContent = '✓ Username saved';
+    } catch (e) {
+      showMsg('Something went wrong. Try again.', 'error');
+      document.getElementById('start-btn').disabled = false;
+      document.getElementById('start-btn').textContent = 'Continue →';
+    }
+  }
+
+  function connectWhoop() {
+    if (!userId) return;
+    const w = window.open(`/auth/whoop/start?user_id=${userId}`, '_blank', 'width=600,height=700');
+    const check = setInterval(() => {
+      if (w.closed) {
+        clearInterval(check);
+        document.getElementById('whoop-btn').classList.add('connected');
+        document.getElementById('whoop-status').textContent = '✓ Connected';
+        document.getElementById('whoop-status').className = 'connect-status done';
+      }
+    }, 500);
+  }
+
+  function connectStrava() {
+    if (!userId) return;
+    const w = window.open(`/auth/strava/start?user_id=${userId}`, '_blank', 'width=600,height=700');
+    const check = setInterval(() => {
+      if (w.closed) {
+        clearInterval(check);
+        document.getElementById('strava-btn').classList.add('connected');
+        document.getElementById('strava-status').textContent = '✓ Connected';
+        document.getElementById('strava-status').className = 'connect-status done';
+      }
+    }, 500);
+  }
+
+  async function finishSignup() {
+    if (!userId) return;
+
+    const hevyKey = document.getElementById('hevy-key').value.trim();
+    if (hevyKey) {
+      await fetch('/api/save-hevy-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, hevy_api_key: hevyKey })
+      });
+    }
+
+    document.getElementById('launch-btn').disabled = true;
+    document.getElementById('launch-btn').textContent = 'Launching...';
+
+    try {
+      const resp = await fetch('/api/finish-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId })
+      });
+      const data = await resp.json();
+      showMsg('🎉 Your FitStack AI is live! Check Telegram for a welcome message.', 'success');
+      document.getElementById('launch-btn').textContent = '✓ Launched!';
+    } catch (e) {
+      showMsg('Could not send Telegram message. Make sure you started a chat with the bot first!', 'error');
+      document.getElementById('launch-btn').disabled = false;
+      document.getElementById('launch-btn').textContent = 'Launch my FitStack AI →';
+    }
+  }
+
+  function showMsg(text, type) {
+    const el = document.getElementById('result-msg');
+    el.textContent = text;
+    el.className = `msg ${type}`;
+  }
+</script>
+</body>
+</html>
