@@ -8,6 +8,12 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 
+try:
+    from psycopg2cffi import compat
+    compat.register()
+except ImportError:
+    pass
+
 DATABASE_URL = os.getenv("DATABASE_URL", "").replace("postgres://", "postgresql://")
 
 engine = create_engine(DATABASE_URL)
