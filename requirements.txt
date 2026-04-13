@@ -3,4 +3,3 @@ aiohttp==3.9.5
 python-dotenv==1.0.1
 requests==2.31.0
 redis==5.0.1
-httpx==0.25.2
