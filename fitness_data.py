@@ -208,6 +208,7 @@ class FitnessDataCollector:
         async with aiohttp.ClientSession(headers=headers) as session:
             r = await session.get(f"{base}/workouts?page=1&pageSize=10")
             text = await r.text()
+            logger.info(f"Hevy API response for {self.user_id}: {text[:300]}")
             try:
                 data = json.loads(text)
             except Exception:
