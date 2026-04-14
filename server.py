@@ -44,22 +44,22 @@ def landing_page():
 
 @app.post("/api/start-signup")
 async def start_signup(request: Request, db: Session = Depends(get_db)):
-    """Called when user enters their Telegram username to begin signup"""
+    """Called after Telegram Login Widget authorizes user"""
     data = await request.json()
-    telegram_username = data.get("telegram_username", "").strip().lstrip("@")
+    telegram_id = str(data.get("telegram_id", "")).strip()
+    telegram_username = data.get("telegram_username", "").strip()
+    name = data.get("name", "").strip()
 
-    if not telegram_username:
-        raise HTTPException(status_code=400, detail="Telegram username required")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Telegram ID required")
 
-    # Create a temporary user record with username as placeholder ID
-    # Real telegram_id gets set when they first message the bot
-    existing = db.query(UserTokens).filter_by(telegram_id=telegram_username).first()
+    existing = db.query(UserTokens).filter_by(telegram_id=telegram_id).first()
     if not existing:
-        tokens = UserTokens(telegram_id=telegram_username)
+        tokens = UserTokens(telegram_id=telegram_id)
         db.add(tokens)
         db.commit()
 
-    return {"status": "ok", "user_id": telegram_username}
+    return {"status": "ok", "user_id": telegram_id}
 
 
 @app.post("/api/save-hevy-key")
