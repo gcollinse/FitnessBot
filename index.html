@@ -12,31 +12,54 @@
   nav { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 3rem; border-bottom: 1px solid #EBEBEB; }
   .logo { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 1.5rem; }
   .logo span { color: var(--yellow-dark); }
-  .hero { max-width: 600px; margin: 4rem auto; padding: 0 2rem; text-align: center; }
+  .hero { max-width: 580px; margin: 4rem auto; padding: 0 2rem; text-align: center; }
   h1 { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 3.5rem; line-height: 1; margin-bottom: 1rem; }
   h1 em { font-style: normal; color: var(--yellow-dark); }
-  .sub { font-size: 1.1rem; color: #555; margin-bottom: 3rem; line-height: 1.6; }
+  .sub { font-size: 1.05rem; color: #555; margin-bottom: 2.5rem; line-height: 1.6; }
+
+  /* Steps */
+  .steps-row { display: flex; justify-content: center; gap: 0; margin-bottom: 2rem; }
+  .step { flex: 1; max-width: 160px; text-align: center; position: relative; }
+  .step-num { width: 32px; height: 32px; border-radius: 50%; background: var(--yellow); color: var(--black); font-weight: 800; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem; font-family: 'Barlow Condensed', sans-serif; position: relative; z-index: 1; }
+  .step-num.done { background: #22C55E; color: white; }
+  .step-num.inactive { background: #E5E5E5; color: #999; }
+  .step-line { position: absolute; top: 16px; left: 50%; right: -50%; height: 1px; background: #E5E5E5; z-index: 0; }
+  .step-line.done { background: #22C55E; }
+  .step:last-child .step-line { display: none; }
+  .step-label { font-size: 0.75rem; color: #888; font-weight: 500; }
+
   .card { background: var(--gray); border-radius: 16px; padding: 2rem; border: 1px solid #EBEBEB; text-align: left; }
-  .step-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #888; font-weight: 600; margin-bottom: 1.5rem; }
-  .input-group { margin-bottom: 1rem; }
-  .input-label { font-size: 0.8rem; font-weight: 600; color: #555; margin-bottom: 0.4rem; display: block; }
-  input[type="text"] { width: 100%; padding: 0.75rem 1rem; border: 1px solid #DDD; border-radius: 8px; font-size: 0.95rem; font-family: 'Barlow', sans-serif; background: white; }
-  input[type="text"]:focus { outline: none; border-color: var(--yellow-dark); }
+  .section-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #888; font-weight: 600; margin-bottom: 1.25rem; }
+
+  /* Telegram button */
+  .tg-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; background: #229ED9; color: white; border: none; border-radius: 10px; padding: 0.9rem 1.5rem; font-size: 1rem; font-weight: 600; cursor: pointer; font-family: 'Barlow', sans-serif; transition: background 0.15s; }
+  .tg-btn:hover { background: #1a8bbf; }
+  .tg-btn svg { width: 22px; height: 22px; flex-shrink: 0; }
+  .tg-widget-wrap { display: flex; justify-content: center; margin-top: 0.5rem; }
+
   .connect-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; background: white; border: 1px solid #DDD; border-radius: 8px; padding: 0.8rem 1rem; cursor: pointer; margin-bottom: 0.75rem; font-family: 'Barlow', sans-serif; font-size: 0.95rem; font-weight: 500; transition: border-color 0.15s; }
-  .connect-btn:hover { border-color: #999; }
+  .connect-btn:hover:not(:disabled) { border-color: #999; }
   .connect-btn.connected { border-color: #22C55E; background: #F0FDF4; }
+  .connect-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .connect-btn-left { display: flex; align-items: center; gap: 10px; }
   .app-dot { width: 8px; height: 8px; border-radius: 50%; }
   .connect-status { font-size: 0.78rem; font-weight: 600; color: #888; }
   .connect-status.done { color: #22C55E; }
   .divider { border: none; border-top: 1px solid #E5E5E5; margin: 1.25rem 0; }
+  .input-label { font-size: 0.8rem; font-weight: 600; color: #555; margin-bottom: 0.4rem; display: block; }
+  input[type="text"] { width: 100%; padding: 0.75rem 1rem; border: 1px solid #DDD; border-radius: 8px; font-size: 0.95rem; font-family: 'Barlow', sans-serif; background: white; }
+  input[type="text"]:focus { outline: none; border-color: var(--yellow-dark); }
+  .note { font-size: 0.78rem; color: #888; margin-top: 0.4rem; }
   .cta-btn { width: 100%; background: var(--black); color: var(--yellow); border: none; border-radius: 8px; padding: 1rem; font-size: 1rem; font-weight: 700; cursor: pointer; font-family: 'Barlow', sans-serif; margin-top: 0.5rem; transition: background 0.15s; }
-  .cta-btn:hover { background: #333; }
+  .cta-btn:hover:not(:disabled) { background: #333; }
   .cta-btn:disabled { background: #999; color: #CCC; cursor: not-allowed; }
-  .msg { padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; margin-top: 1rem; display: none; }
+  .msg { padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.88rem; margin-top: 1rem; display: none; }
   .msg.success { background: #F0FDF4; border: 1px solid #86EFAC; color: #166534; display: block; }
   .msg.error { background: #FEF2F2; border: 1px solid #FCA5A5; color: #991B1B; display: block; }
-  .note { font-size: 0.8rem; color: #888; margin-top: 0.5rem; }
+  .user-badge { display: flex; align-items: center; gap: 10px; background: #F0FDF4; border: 1px solid #86EFAC; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; }
+  .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: #229ED9; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.9rem; flex-shrink: 0; }
+  .user-name { font-weight: 600; font-size: 0.95rem; }
+  .user-sub { font-size: 0.78rem; color: #166534; }
 </style>
 </head>
 <body>
@@ -49,18 +72,40 @@
   <h1>Stack your<br>fitness apps.<br><em>One AI.</em></h1>
   <p class="sub">Connect Whoop, Strava, and Hevy. Ask your personal AI anything about your recovery, training, and nutrition.</p>
 
-  <div class="card">
-    <div class="step-label">Step 1 — Enter your Telegram username</div>
-    <div class="input-group">
-      <label class="input-label">Telegram Username</label>
-      <input type="text" id="telegram-username" placeholder="@yourusername" />
-      <p class="note">You must have already started a chat with <strong>@FitStackAI_bot</strong> on Telegram first.</p>
+  <!-- Progress steps -->
+  <div class="steps-row">
+    <div class="step" id="step1-indicator">
+      <div class="step-num" id="step1-num">1</div>
+      <div class="step-line" id="step1-line"></div>
+      <div class="step-label">Telegram</div>
     </div>
-    <button class="cta-btn" id="start-btn" onclick="startSignup()">Continue →</button>
+    <div class="step" id="step2-indicator">
+      <div class="step-num inactive" id="step2-num">2</div>
+      <div class="step-line" id="step2-line"></div>
+      <div class="step-label">Connect apps</div>
+    </div>
+    <div class="step">
+      <div class="step-num inactive" id="step3-num">3</div>
+      <div class="step-label">Launch</div>
+    </div>
+  </div>
 
-    <div id="connect-section" style="display:none;">
-      <hr class="divider">
-      <div class="step-label">Step 2 — Connect your apps</div>
+  <div class="card">
+
+    <!-- STEP 1: Telegram Login -->
+    <div id="step1-section">
+      <div class="section-label">Step 1 — Sign in with Telegram</div>
+      <p style="font-size:0.9rem;color:#555;margin-bottom:1.25rem;line-height:1.5;">Click below to connect your Telegram account. Make sure you've already started a chat with <strong>@FitStackAI_bot</strong> on Telegram first.</p>
+      <div class="tg-widget-wrap" id="tg-widget-container">
+        <!-- Telegram Login Widget loads here -->
+      </div>
+      <p class="note" style="text-align:center;margin-top:0.75rem;">Your Telegram ID is used only to send you bot messages.</p>
+    </div>
+
+    <!-- STEP 2: Connect apps (hidden until Telegram login) -->
+    <div id="step2-section" style="display:none;">
+      <div id="user-badge-area"></div>
+      <div class="section-label">Step 2 — Connect your fitness apps</div>
 
       <button class="connect-btn" id="whoop-btn" onclick="connectWhoop()">
         <div class="connect-btn-left">
@@ -78,14 +123,14 @@
         <span class="connect-status" id="strava-status">Connect →</span>
       </button>
 
-      <div class="input-group" style="margin-top:0.75rem;">
-        <label class="input-label">Hevy API Key (optional)</label>
+      <div style="margin-top:0.75rem;">
+        <label class="input-label">Hevy API Key <span style="font-weight:400;color:#aaa;">(optional)</span></label>
         <input type="text" id="hevy-key" placeholder="Your Hevy API key" />
-        <p class="note">Found in Hevy app → Settings → API Key (requires Hevy Pro)</p>
+        <p class="note">Hevy app → Settings → API Key · Requires Hevy Pro ($3/mo)</p>
       </div>
 
       <hr class="divider">
-      <div class="step-label">Step 3 — Launch</div>
+      <div class="section-label">Step 3 — Launch your AI</div>
       <button class="cta-btn" id="launch-btn" onclick="finishSignup()">Launch my FitStack AI →</button>
     </div>
 
@@ -95,30 +140,54 @@
 
 <script>
   let userId = null;
+  let userName = null;
 
-  async function startSignup() {
-    const username = document.getElementById('telegram-username').value.trim().replace('@', '');
-    if (!username) { showMsg('Please enter your Telegram username', 'error'); return; }
+  // Called by Telegram Login Widget after user authorizes
+  function onTelegramAuth(user) {
+    userId = String(user.id);
+    userName = user.first_name + (user.last_name ? ' ' + user.last_name : '');
 
-    document.getElementById('start-btn').disabled = true;
-    document.getElementById('start-btn').textContent = 'Setting up...';
+    // Update step indicators
+    document.getElementById('step1-num').textContent = '✓';
+    document.getElementById('step1-num').classList.add('done');
+    document.getElementById('step1-line').classList.add('done');
+    document.getElementById('step2-num').classList.remove('inactive');
 
-    try {
-      const resp = await fetch('/api/start-signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ telegram_username: username })
-      });
-      const data = await resp.json();
-      userId = data.user_id;
-      document.getElementById('connect-section').style.display = 'block';
-      document.getElementById('start-btn').textContent = '✓ Username saved';
-    } catch (e) {
-      showMsg('Something went wrong. Try again.', 'error');
-      document.getElementById('start-btn').disabled = false;
-      document.getElementById('start-btn').textContent = 'Continue →';
-    }
+    // Show user badge
+    const initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    document.getElementById('user-badge-area').innerHTML = `
+      <div class="user-badge">
+        <div class="user-avatar">${initials}</div>
+        <div>
+          <div class="user-name">${userName}</div>
+          <div class="user-sub">✓ Telegram connected</div>
+        </div>
+      </div>
+    `;
+
+    // Save to backend
+    fetch('/api/start-signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ telegram_id: userId, telegram_username: user.username || '', name: userName })
+    });
+
+    // Show step 2
+    document.getElementById('step1-section').style.display = 'none';
+    document.getElementById('step2-section').style.display = 'block';
   }
+
+  // Load Telegram widget
+  window.onload = function() {
+    const script = document.createElement('script');
+    script.src = 'https://telegram.org/js/telegram-widget.js?22';
+    script.setAttribute('data-telegram-login', 'FitBrainAI-bot');
+    script.setAttribute('data-size', 'large');
+    script.setAttribute('data-onauth', 'onTelegramAuth(user)');
+    script.setAttribute('data-request-access', 'write');
+    script.async = true;
+    document.getElementById('tg-widget-container').appendChild(script);
+  };
 
   function connectWhoop() {
     if (!userId) return;
@@ -158,6 +227,7 @@
       });
     }
 
+    document.getElementById('step3-num').classList.remove('inactive');
     document.getElementById('launch-btn').disabled = true;
     document.getElementById('launch-btn').textContent = 'Launching...';
 
@@ -168,10 +238,12 @@
         body: JSON.stringify({ user_id: userId })
       });
       const data = await resp.json();
+      document.getElementById('step3-num').textContent = '✓';
+      document.getElementById('step3-num').classList.add('done');
       showMsg('🎉 Your FitStack AI is live! Check Telegram for a welcome message.', 'success');
       document.getElementById('launch-btn').textContent = '✓ Launched!';
     } catch (e) {
-      showMsg('Could not send Telegram message. Make sure you started a chat with the bot first!', 'error');
+      showMsg('Could not send Telegram message. Make sure you started a chat with @FitStackAI_bot first!', 'error');
       document.getElementById('launch-btn').disabled = false;
       document.getElementById('launch-btn').textContent = 'Launch my FitStack AI →';
     }
