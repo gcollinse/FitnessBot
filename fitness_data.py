@@ -7,7 +7,7 @@ import json
 import time
 import asyncio
 import aiohttp
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Callable
 import logging
 
@@ -64,14 +64,15 @@ class FitnessDataCollector:
         if not self.tokens or not self.tokens.whoop_refresh_token:
             raise Exception("Whoop not connected")
 
+        import os
         async with aiohttp.ClientSession() as session:
             resp = await session.post(
                 "https://api.prod.whoop.com/oauth/oauth2/token",
                 data={
                     "grant_type": "refresh_token",
                     "refresh_token": self.tokens.whoop_refresh_token,
-                    "client_id": self.tokens.whoop_client_id or __import__('os').getenv("WHOOP_CLIENT_ID"),
-                    "client_secret": self.tokens.whoop_client_secret or __import__('os').getenv("WHOOP_CLIENT_SECRET"),
+                    "client_id": self.tokens.whoop_client_id or os.getenv("WHOOP_CLIENT_ID"),
+                    "client_secret": self.tokens.whoop_client_secret or os.getenv("WHOOP_CLIENT_SECRET"),
                     "scope": "offline read:recovery read:cycles read:workout read:sleep read:profile read:body_measurement"
                 }
             )
@@ -135,12 +136,13 @@ class FitnessDataCollector:
         if not self.tokens or not self.tokens.strava_refresh_token:
             raise Exception("Strava not connected")
 
+        import os
         async with aiohttp.ClientSession() as session:
             resp = await session.post(
                 "https://www.strava.com/oauth/token",
                 data={
-                    "client_id": self.tokens.strava_client_id or __import__('os').getenv("STRAVA_CLIENT_ID"),
-                    "client_secret": self.tokens.strava_client_secret or __import__('os').getenv("STRAVA_CLIENT_SECRET"),
+                    "client_id": self.tokens.strava_client_id or os.getenv("STRAVA_CLIENT_ID"),
+                    "client_secret": self.tokens.strava_client_secret or os.getenv("STRAVA_CLIENT_SECRET"),
                     "grant_type": "refresh_token",
                     "refresh_token": self.tokens.strava_refresh_token,
                 }
@@ -212,23 +214,42 @@ class FitnessDataCollector:
             try:
                 data = json.loads(text)
             except Exception:
-                return {"error": f"Hevy invalid response"}
+                return {"error": "Hevy invalid response"}
 
         workouts = data.get("workouts", [])
         simplified = []
+
         for w in workouts:
             exercises = []
             for ex in w.get("exercises", []):
-                sets = [{"reps": s.get("reps"), "weight_lbs": round(s.get("weight_kg", 0) * 2.205, 1)} for s in ex.get("sets", []) if s.get("type") == "normal"]
+                sets = [
+                    {
+                        "reps": s.get("reps"),
+                        "weight_lbs": round(s.get("weight_kg", 0) * 2.205, 1)
+                    }
+                    for s in ex.get("sets", [])
+                    if s.get("type") == "normal"
+                ]
+                top_weight = max((s["weight_lbs"] for s in sets if s["weight_lbs"]), default=0)
                 exercises.append({
                     "name": ex.get("title"),
                     "sets": sets,
-                    "top_set_weight_lbs": round(max((s["weight_lbs"] for s in sets if s["weight_lbs"]), default=0), 1),
+                    "top_set_weight_lbs": round(top_weight, 1),
                 })
+
+            start = w.get("start_time", "")
+            end = w.get("end_time", "")
+            try:
+                start_dt = datetime.fromisoformat(start.replace("Z", "+00:00"))
+                end_dt = datetime.fromisoformat(end.replace("Z", "+00:00"))
+                duration = abs(round((end_dt - start_dt).seconds / 60, 1))
+            except Exception:
+                duration = 0
+
             simplified.append({
-                "date": w.get("start_time", "")[:10],
+                "date": start[:10],
                 "title": w.get("title"),
-                "duration_min": round(w.get("duration", 0) / 60, 1),
+                "duration_min": duration,
                 "exercise_count": len(exercises),
                 "exercises": exercises,
             })
