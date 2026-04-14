@@ -7,7 +7,7 @@ import json
 import time
 import asyncio
 import aiohttp
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from typing import Optional, Callable
 import logging
 
@@ -220,39 +220,47 @@ class FitnessDataCollector:
         simplified = []
 
         for w in workouts:
-            exercises = []
-            for ex in w.get("exercises", []):
-                sets = [
-                    {
-                        "reps": s.get("reps"),
-                        "weight_lbs": round(s.get("weight_kg", 0) * 2.205, 1)
-                    }
-                    for s in ex.get("sets", [])
-                    if s.get("type") == "normal"
-                ]
-                top_weight = max((s["weight_lbs"] for s in sets if s["weight_lbs"]), default=0)
-                exercises.append({
-                    "name": ex.get("title"),
-                    "sets": sets,
-                    "top_set_weight_lbs": round(top_weight, 1),
-                })
-
-            start = w.get("start_time", "")
-            end = w.get("end_time", "")
             try:
-                start_dt = datetime.fromisoformat(start.replace("Z", "+00:00"))
-                end_dt = datetime.fromisoformat(end.replace("Z", "+00:00"))
-                duration = abs(round((end_dt - start_dt).seconds / 60, 1))
-            except Exception:
-                duration = 0
+                exercises = []
+                for ex in w.get("exercises", []):
+                    try:
+                        sets = [
+                            {
+                                "reps": s.get("reps"),
+                                "weight_lbs": round(s.get("weight_kg", 0) * 2.205, 1)
+                            }
+                            for s in ex.get("sets", [])
+                            if s.get("type") == "normal"
+                        ]
+                        top_weight = max((s["weight_lbs"] for s in sets if s["weight_lbs"]), default=0)
+                        exercises.append({
+                            "name": ex.get("title"),
+                            "sets": sets,
+                            "top_set_weight_lbs": round(top_weight, 1),
+                        })
+                    except Exception as ex_err:
+                        logger.error(f"Error processing exercise: {ex_err}")
+                        continue
 
-            simplified.append({
-                "date": start[:10],
-                "title": w.get("title"),
-                "duration_min": duration,
-                "exercise_count": len(exercises),
-                "exercises": exercises,
-            })
+                start = w.get("start_time", "")
+                end = w.get("end_time", "")
+                try:
+                    start_dt = datetime.fromisoformat(start.replace("Z", "+00:00"))
+                    end_dt = datetime.fromisoformat(end.replace("Z", "+00:00"))
+                    duration = abs(round((end_dt - start_dt).seconds / 60, 1))
+                except Exception:
+                    duration = 0
+
+                simplified.append({
+                    "date": start[:10],
+                    "title": w.get("title"),
+                    "duration_min": duration,
+                    "exercise_count": len(exercises),
+                    "exercises": exercises,
+                })
+            except Exception as w_err:
+                logger.error(f"Error processing workout: {w_err}")
+                continue
 
         result = {"recent_workouts": simplified, "workout_count": len(simplified)}
         self._set_cache("hevy", result)
