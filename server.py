@@ -1,6 +1,6 @@
 """
 FitStack AI - FastAPI Web Server
-Handles OAuth flows, user signup, and serves the landing page
+Handles OAuth flows, user signup, chat API, and serves the React frontend
 """
 
 import os
@@ -13,6 +13,8 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from database import init_db, get_db, User, UserTokens, Conversation
 from datetime import datetime
+from claude_chat import ClaudeChat
+from fitness_data import FitnessDataCollector
 
 app = FastAPI()
 
@@ -26,29 +28,128 @@ TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 # In-memory state store for OAuth flows (maps state -> telegram_id)
 oauth_states = {}
 
+claude = ClaudeChat()
+
 
 @app.on_event("startup")
 def startup():
     init_db()
 
 
-# ─── LANDING PAGE ────────────────────────────────────────────────────────────
+# ─── CHAT API ────────────────────────────────────────────────────────────────
 
-@app.get("/", response_class=HTMLResponse)
-def landing_page():
-    with open("index.html") as f:
-        return f.read()
+@app.post("/api/chat")
+async def chat(request: Request, db: Session = Depends(get_db)):
+    data = await request.json()
+    telegram_id = str(data.get("telegram_id", "")).strip()
+    message = data.get("message", "").strip()
+    history = data.get("history", [])
+
+    if not telegram_id or not message:
+        raise HTTPException(status_code=400, detail="telegram_id and message required")
+
+    tokens = db.query(UserTokens).filter_by(telegram_id=telegram_id).first()
+    if not tokens:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    def save_whoop_token(uid, new_token):
+        t = db.query(UserTokens).filter_by(telegram_id=uid).first()
+        if t:
+            t.whoop_refresh_token = new_token
+            db.commit()
+
+    collector = FitnessDataCollector(telegram_id, tokens, save_whoop_token)
+    fitness_data = await collector.get_all_data()
+
+    # Build conversation history for Claude
+    messages = [{"role": m["role"], "content": m["content"]} for m in history]
+    messages.append({"role": "user", "content": message})
+
+    response_text = await claude.chat(messages, fitness_data)
+
+    # Save conversation to DB
+    convo = db.query(Conversation).filter_by(telegram_id=telegram_id).first()
+    if not convo:
+        convo = Conversation(telegram_id=telegram_id, messages=json.dumps([]))
+        db.add(convo)
+
+    existing = json.loads(convo.messages or "[]")
+    existing.append({"role": "user", "content": message})
+    existing.append({"role": "assistant", "content": response_text})
+    convo.messages = json.dumps(existing[-40:])  # keep last 20 exchanges
+    convo.updated_at = datetime.utcnow()
+    db.commit()
+
+    return {"text": response_text}
+
+
+@app.get("/api/daily-summary/{telegram_id}")
+async def daily_summary(telegram_id: str, db: Session = Depends(get_db)):
+    tokens = db.query(UserTokens).filter_by(telegram_id=telegram_id).first()
+    if not tokens:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    def save_whoop_token(uid, new_token):
+        t = db.query(UserTokens).filter_by(telegram_id=uid).first()
+        if t:
+            t.whoop_refresh_token = new_token
+            db.commit()
+
+    collector = FitnessDataCollector(telegram_id, tokens, save_whoop_token)
+    fitness_data = await collector.get_all_data()
+
+    whoop = fitness_data.get("whoop", {})
+    strava = fitness_data.get("strava", {})
+    hevy = fitness_data.get("hevy", {})
+
+    today = whoop.get("today", {})
+
+    # Last run
+    runs = [a for a in strava.get("recent_activities", []) if a.get("type") == "Run"]
+    last_run = None
+    if runs:
+        r = runs[0]
+        pace = r.get("pace_min_per_mile")
+        if pace:
+            mins = int(pace)
+            secs = int((pace - mins) * 60)
+            pace_str = f"{mins}:{secs:02d}/mi"
+        else:
+            pace_str = "—"
+        last_run = f"{r.get('distance_miles', 0)}mi · {pace_str}"
+
+    # Last lift
+    workouts = hevy.get("recent_workouts", [])
+    last_lift = None
+    if workouts:
+        w = workouts[0]
+        last_lift = f"{w.get('title', 'Workout')} · {w.get('date', '')}"
+
+    return {
+        "recovery": today.get("recovery_score"),
+        "hrv": today.get("hrv_rmssd_milli"),
+        "strain": None,  # pulled from cycle records if needed
+        "sleep": today.get("sleep_performance_percentage"),
+        "resting_hr": today.get("resting_heart_rate"),
+        "last_run": last_run,
+        "last_lift": last_lift,
+    }
+
+
+@app.get("/api/conversation/{telegram_id}")
+async def get_conversation(telegram_id: str, db: Session = Depends(get_db)):
+    convo = db.query(Conversation).filter_by(telegram_id=telegram_id).first()
+    if not convo:
+        return {"messages": []}
+    return {"messages": json.loads(convo.messages or "[]")}
 
 
 # ─── ONBOARDING API ──────────────────────────────────────────────────────────
 
 @app.post("/api/start-signup")
 async def start_signup(request: Request, db: Session = Depends(get_db)):
-    """Called after Telegram Login Widget authorizes user"""
     data = await request.json()
     telegram_id = str(data.get("telegram_id", "")).strip()
-    telegram_username = data.get("telegram_username", "").strip()
-    name = data.get("name", "").strip()
 
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Telegram ID required")
@@ -81,11 +182,9 @@ async def save_hevy_key(request: Request, db: Session = Depends(get_db)):
 
 @app.post("/api/finish-signup")
 async def finish_signup(request: Request, db: Session = Depends(get_db)):
-    """Send the user a welcome message on Telegram"""
     data = await request.json()
     telegram_username = data.get("user_id")
 
-    # Send welcome message via Telegram
     async with httpx.AsyncClient() as client:
         resp = await client.post(
             f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
@@ -104,7 +203,7 @@ async def finish_signup(request: Request, db: Session = Depends(get_db)):
         )
         result = resp.json()
         if not result.get("ok"):
-            raise HTTPException(status_code=400, detail="Could not send Telegram message. Make sure you've started a chat with the bot first!")
+            raise HTTPException(status_code=400, detail="Could not send Telegram message.")
 
     return {"status": "ok"}
 
@@ -223,3 +322,10 @@ async def strava_callback(code: str, state: str, db: Session = Depends(get_db)):
         <script>window.close();</script>
         </body></html>
     """)
+
+
+# ─── SERVE REACT FRONTEND ────────────────────────────────────────────────────
+# This must come LAST — it catches all routes not matched above
+# Run `npm run build` in the frontend folder first, then copy dist/ here
+
+app.mount("/", StaticFiles(directory="dist", html=True), name="static")
