@@ -1,0 +1,243 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+}
+
+.texture {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(45,90,39,0.045) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+}
+
+.blob {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(45,90,39,0.07) 0%, transparent 65%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.card {
+  position: relative;
+  z-index: 2;
+  width: 420px;
+  max-width: 92vw;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 44px 40px 40px;
+  animation: fadeUp 0.35s ease;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 24px;
+}
+
+.logoMark {
+  width: 34px;
+  height: 34px;
+  background: var(--green);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logoMark svg { width: 18px; height: 18px; }
+
+.logoName {
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+
+.userBadge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--green-lt);
+  border: 1px solid rgba(45,90,39,0.2);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 24px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.userName {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.userSub {
+  font-size: 12px;
+  color: var(--green2);
+}
+
+.connectLabel {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 12px;
+}
+
+.connectBtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.connectBtn:hover { border-color: var(--green); }
+
+.connectBtn.connected {
+  border-color: var(--green2);
+  background: var(--green-lt);
+}
+
+.connectLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dotWhoop  { background: #e03c3c; }
+.dotStrava { background: #fc4c02; }
+
+.connectStatus {
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--text3);
+}
+
+.connectStatus.done { color: var(--green2); }
+
+.hevySection {
+  margin-top: 16px;
+}
+
+.inputLabel {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text2);
+  margin-bottom: 6px;
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--text3);
+}
+
+.input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input:focus { border-color: var(--green); }
+
+.note {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 6px;
+}
+
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 20px 0;
+}
+
+.error {
+  font-size: 13px;
+  color: #c0392b;
+  margin-bottom: 12px;
+}
+
+.launchBtn {
+  width: 100%;
+  background: var(--green);
+  border: none;
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-size: 15px;
+  font-weight: 500;
+  color: white;
+  cursor: pointer;
+  transition: filter 0.15s, transform 0.15s;
+  margin-bottom: 12px;
+}
+
+.launchBtn:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
+.launchBtn:disabled { opacity: 0.5; cursor: default; }
+
+.skip {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text3);
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.skip:hover { color: var(--text2); }
