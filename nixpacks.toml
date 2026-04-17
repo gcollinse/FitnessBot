@@ -1,13 +1,13 @@
 [phases.setup]
-nixPkgs = ["nodejs_22", "python312"]
+nixPkgs = ["nodejs_22", "python312", "python312Packages.pip"]
 
 [phases.build]
 cmds = [
-  "pip install -r requirements.txt",
+  "python3 -m pip install -r requirements.txt",
   "rm -f package-lock.json",
   "npm install",
   "npm run build"
 ]
 
 [phases.start]
-cmd = "uvicorn server:app --host 0.0.0.0 --port $PORT"
+cmd = "python3 -m uvicorn server:app --host 0.0.0.0 --port $PORT"
