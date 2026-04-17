@@ -1,0 +1,34 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@500;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #f7f6f2;
+  --bg2:       #ffffff;
+  --bg3:       #f0efe9;
+  --bg4:       #e8e7e1;
+  --border:    rgba(0,0,0,0.08);
+  --border2:   rgba(0,0,0,0.14);
+  --green:     #2d5a27;
+  --green2:    #3a7232;
+  --green-lt:  #eaf2e8;
+  --green-md:  rgba(45,90,39,0.12);
+  --text:      #111110;
+  --text2:     #5a5955;
+  --text3:     #9a9994;
+  --mono:      'DM Mono', monospace;
+  --display:   'Syne', sans-serif;
+  --body:      'DM Sans', sans-serif;
+}
+
+html, body, #root {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+button { cursor: pointer; font-family: var(--body); }
+textarea, input { font-family: var(--body); }
