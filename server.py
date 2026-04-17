@@ -18,24 +18,6 @@ from fitness_data import FitnessDataCollector
 
 app = FastAPI()
 
-from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request
-
-class CSPMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        response = await call_next(request)
-        response.headers["Content-Security-Policy"] = (
-    "default-src 'self'; "
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://telegram.org; "
-    "frame-src https://oauth.telegram.org; "
-    "connect-src 'self' https://api.telegram.org; "
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-    "font-src https://fonts.gstatic.com;"
-)
-        return response
-
-app.add_middleware(CSPMiddleware)
 BASE_URL = "https://fitstack-ai.up.railway.app"
 WHOOP_CLIENT_ID = os.getenv("WHOOP_CLIENT_ID")
 WHOOP_CLIENT_SECRET = os.getenv("WHOOP_CLIENT_SECRET")
@@ -345,6 +327,5 @@ async def strava_callback(code: str, state: str, db: Session = Depends(get_db)):
 # ─── SERVE REACT FRONTEND ────────────────────────────────────────────────────
 # This must come LAST — it catches all routes not matched above
 # Run `npm run build` in the frontend folder first, then copy dist/ here
-import os
-if os.path.exists("dist"):
-    app.mount("/", StaticFiles(directory="dist", html=True), name="static")
+
+app.mount("/", StaticFiles(directory="dist", html=True), name="static")
