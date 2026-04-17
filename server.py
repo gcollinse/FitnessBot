@@ -327,5 +327,6 @@ async def strava_callback(code: str, state: str, db: Session = Depends(get_db)):
 # ─── SERVE REACT FRONTEND ────────────────────────────────────────────────────
 # This must come LAST — it catches all routes not matched above
 # Run `npm run build` in the frontend folder first, then copy dist/ here
-
-app.mount("/", StaticFiles(directory="dist", html=True), name="static")
+import os
+if os.path.exists("dist"):
+    app.mount("/", StaticFiles(directory="dist", html=True), name="static")
