@@ -1,4 +1,4 @@
 [phases.build]
 cmds = [
-  "cd fitstack && npm install && npm run build && cp -r dist ../dist"
+  "npm install && npm run build"
 ]
