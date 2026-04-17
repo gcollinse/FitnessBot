@@ -1,6 +1,29 @@
+import { useEffect } from 'react'
 import styles from './Login.module.css'
 
 export default function Login({ onLogin }) {
+
+  useEffect(() => {
+    // Telegram Login Widget calls window.onTelegramAuth when user logs in
+    window.onTelegramAuth = async (user) => {
+      try {
+        const res = await fetch('/api/start-signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            telegram_id: String(user.id),
+            telegram_username: user.username || '',
+            name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
+          }),
+        })
+        if (!res.ok) throw new Error('Signup failed')
+        onLogin({ telegramId: String(user.id), firstName: user.first_name || '' })
+      } catch (e) {
+        alert('Login failed: ' + e.message)
+      }
+    }
+  }, [])
+
   return (
     <div className={styles.page}>
       <div className={styles.texture} />
@@ -34,12 +57,18 @@ export default function Login({ onLogin }) {
           <div className={styles.appBadge}><span className={`${styles.dot} ${styles.dotHevy}`} />Hevy</div>
         </div>
 
-        <button className={styles.tgBtn} onClick={onLogin}>
-          <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.04 9.607c-.148.658-.538.817-1.09.508l-3.01-2.218-1.454 1.398c-.16.16-.296.296-.607.296l.215-3.053 5.566-5.028c.242-.215-.053-.334-.374-.12L6.68 14.875l-2.95-.92c-.641-.2-.654-.641.134-.948l11.523-4.44c.533-.194 1.001.13.175.681z" />
-          </svg>
-          Continue with Telegram
-        </button>
+        {/* Real Telegram Login Widget — replace YOUR_BOT_USERNAME below */}
+        <div className={styles.tgWidgetWrapper}>
+          <script
+            async
+            src="https://telegram.org/js/telegram-widget.js?22"
+            data-telegram-login="FitBrainAI_bot"
+            data-size="large"
+            data-radius="12"
+            data-onauth="onTelegramAuth(user)"
+            data-request-access="write"
+          />
+        </div>
 
         <p className={styles.footer}>
           By continuing you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.<br />
