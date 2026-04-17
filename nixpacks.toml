@@ -1,8 +1,11 @@
 [phases.setup]
-nixPkgs = ["nodejs"]
+nixPkgs = ["nodejs_22"]
 
 [phases.build]
 cmds = [
   "npm install",
   "npm run build"
 ]
+
+[phases.start]
+cmd = "uvicorn server:app --host 0.0.0.0 --port $PORT"
