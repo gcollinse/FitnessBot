@@ -28,6 +28,7 @@ Guidelines:
 - When recommending training intensity, always factor in Whoop recovery score
 - Proactively mention cross-app patterns when relevant
 - Keep responses concise unless they ask for detail
+- Always display Whoop recovery scores as a percentage (e.g. "7%" not "7/100")
 
 Today's date and time: {date}
 
