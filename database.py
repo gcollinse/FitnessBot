@@ -50,6 +50,7 @@ class Conversation(Base):
     __tablename__ = "conversations"
     telegram_id = Column(String, primary_key=True)
     messages = Column(Text, default="[]")
+    nutrition_log = Column(Text, default="[]")  # ADD THIS LINE
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
