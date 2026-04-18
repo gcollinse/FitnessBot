@@ -142,7 +142,7 @@ export default function Chat({ telegramId, firstName }) {
         <div className={styles.navRight}>
           <button className={styles.navPill} onClick={fetchDailySummary}>/refresh</button>
           <button className={styles.navPill} onClick={() => handleSend('/nutrition')}>/nutrition</button>
-          <div className={styles.avatar}>{firstName ? firstName[0].toUpperCase() : 'JD'}</div>
+          <div className={styles.avatar}>{firstName ? firstName[0].toUpperCase() : '?'}</div>
         </div>
       </nav>
 
