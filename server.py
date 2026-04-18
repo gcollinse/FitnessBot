@@ -259,6 +259,24 @@ async def analyze_photo(request: Request, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=data["error"].get("message", "Claude error"))
 
     response_text = data["content"][0]["text"]
+
+    import re
+    json_match = re.search(r'\{[^{}]*"calories"[^{}]*\}', response_text, re.DOTALL)
+    if json_match:
+        try:
+            nutrition_data = json.loads(json_match.group(0))
+            nutrition_data["date"] = datetime.utcnow().strftime("%Y-%m-%d")
+            convo = db.query(Conversation).filter_by(telegram_id=telegram_id).first()
+            if not convo:
+                convo = Conversation(telegram_id=telegram_id, messages=json.dumps([]), nutrition_log=json.dumps([]))
+                db.add(convo)
+            existing = json.loads(convo.nutrition_log or "[]")
+            existing.append(nutrition_data)
+            convo.nutrition_log = json.dumps(existing)
+            db.commit()
+        except Exception:
+            pass
+
     return {"text": response_text}
 
 @app.post("/api/log-nutrition")
