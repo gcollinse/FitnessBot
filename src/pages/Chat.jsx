@@ -68,7 +68,7 @@ export default function Chat({ telegramId, firstName }) {
     setInput('')
     if (textareaRef.current) textareaRef.current.style.height = 'auto'
 
-    const userMsg = { role: 'user', content: msg, time: now() }
+    const userMsg = { role: 'user', text: msg, time: now() }
     setMessages(prev => [...prev, userMsg])
     setLoading(true)
 
