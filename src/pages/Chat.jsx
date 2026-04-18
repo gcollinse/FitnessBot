@@ -81,6 +81,35 @@ export default function Chat({ telegramId, firstName }) {
     }
   }
 
+  async function fetchNutritionLog() {
+    try {
+      const res = await fetch(`/api/nutrition/${telegramId}`)
+      if (!res.ok) return null
+      const data = await res.json()
+      if (data.items && data.items.length > 0) {
+        const t = data.totals
+        const itemList = data.items.map((item, i) =>
+          `${i + 1}. ${item.description} — ~${item.calories} kcal | ${item.protein_g}g protein`
+        ).join('\n')
+        return `Today's nutrition log:\n\n${itemList}\n\n─────────────────\nTotals:\nCalories: ~${t.calories} kcal\nProtein: ~${t.protein_g}g\nCarbs: ~${t.carbs_g}g\nFat: ~${t.fat_g}g`
+      }
+      return null
+    } catch (e) {
+      return null
+    }
+  }
+
+  async function handleNutritionClick() {
+    const log = await fetchNutritionLog()
+    if (log) {
+      setShowWelcome(false)
+      setMessages(prev => [...prev, { role: 'ai', text: log, time: now() }])
+    } else {
+      setShowWelcome(false)
+      setMessages(prev => [...prev, { role: 'ai', text: "No food logged today. Send a photo of your meal to get started!", time: now() }])
+    }
+  }
+
   async function handleSend(text) {
     const msg = text || input.trim()
     if (!msg || loading) return
@@ -138,7 +167,7 @@ export default function Chat({ telegramId, firstName }) {
     const previewUrl = URL.createObjectURL(file)
     setMessages(prev => [...prev, {
       role: 'user',
-      text: '📸 Food photo',
+      text: 'Food photo',
       image: previewUrl,
       time: now(),
     }])
@@ -196,7 +225,7 @@ export default function Chat({ telegramId, firstName }) {
         </div>
         <div className={styles.navRight}>
           <button className={styles.navPill} onClick={fetchDailySummary}>/refresh</button>
-          <button className={styles.navPill} onClick={() => handleSend('/nutrition')}>/nutrition</button>
+          <button className={styles.navPill} onClick={handleNutritionClick}>/nutrition</button>
           <div className={styles.avatar}>{firstName ? firstName[0].toUpperCase() : ''}</div>
         </div>
       </nav>
@@ -267,7 +296,11 @@ export default function Chat({ telegramId, firstName }) {
       <div className={styles.inputArea}>
         <div className={styles.cmdRow}>
           {["🥗 /nutrition", "↺ /refresh", "How should I train today?", "How am I trending this month?"].map(c => (
-            <button key={c} className={styles.cmdBtn} onClick={() => { setInput(c); textareaRef.current?.focus() }}>{c}</button>
+            <button key={c} className={styles.cmdBtn} onClick={() => {
+              if (c === '🥗 /nutrition') { handleNutritionClick(); return; }
+              if (c === '↺ /refresh') { fetchDailySummary(); return; }
+              setInput(c); textareaRef.current?.focus()
+            }}>{c}</button>
           ))}
         </div>
         <div className={styles.inputRow}>
