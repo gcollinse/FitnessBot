@@ -261,6 +261,48 @@ async def analyze_photo(request: Request, db: Session = Depends(get_db)):
     response_text = data["content"][0]["text"]
     return {"text": response_text}
 
+@app.post("/api/log-nutrition")
+async def log_nutrition(request: Request, db: Session = Depends(get_db)):
+    data = await request.json()
+    telegram_id = str(data.get("telegram_id", "")).strip()
+    item = data.get("item", {})
+
+    convo = db.query(Conversation).filter_by(telegram_id=telegram_id).first()
+    if not convo:
+        convo = Conversation(telegram_id=telegram_id, messages=json.dumps([]), nutrition_log=json.dumps([]))
+        db.add(convo)
+
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    existing = json.loads(convo.nutrition_log or "[]")
+    existing = [e for e in existing if e.get("date") == today]
+    item["date"] = today
+    existing.append(item)
+    convo.nutrition_log = json.dumps(existing)
+    convo.updated_at = datetime.utcnow()
+    db.commit()
+
+    return {"status": "ok"}
+
+
+@app.get("/api/nutrition/{telegram_id}")
+async def get_nutrition(telegram_id: str, db: Session = Depends(get_db)):
+    convo = db.query(Conversation).filter_by(telegram_id=telegram_id).first()
+    if not convo:
+        return {"items": [], "totals": {}}
+
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    all_items = json.loads(convo.nutrition_log or "[]")
+    today_items = [i for i in all_items if i.get("date") == today]
+
+    totals = {
+        "calories": sum(i.get("calories", 0) for i in today_items),
+        "protein_g": sum(i.get("protein_g", 0) for i in today_items),
+        "carbs_g": sum(i.get("carbs_g", 0) for i in today_items),
+        "fat_g": sum(i.get("fat_g", 0) for i in today_items),
+    }
+
+    return {"items": today_items, "totals": totals}
+
 
 # ─── WHOOP OAUTH ─────────────────────────────────────────────────────────────
 
