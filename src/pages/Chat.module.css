@@ -329,3 +329,20 @@
 .sendBtn:hover:not(:disabled)  { filter: brightness(1.12); transform: scale(1.05); }
 .sendBtn:active:not(:disabled) { transform: scale(0.95); }
 .sendBtn:disabled { opacity: 0.3; cursor: default; }
+
+.photoBtn {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.photoBtn:hover { border-color: var(--green); color: var(--green); }
+.photoBtn:disabled { opacity: 0.3; cursor: default; }
