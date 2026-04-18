@@ -69,6 +69,15 @@ async def chat(request: Request, db: Session = Depends(get_db)):
     messages = [{"role": m["role"], "content": m["content"]} for m in history]
     messages.append({"role": "user", "content": message})
 
+    # Add today's nutrition log to fitness data
+    convo_for_nutrition = db.query(Conversation).filter_by(telegram_id=telegram_id).first()
+    if convo_for_nutrition and convo_for_nutrition.nutrition_log:
+        today = datetime.utcnow().strftime("%Y-%m-%d")
+        all_items = json.loads(convo_for_nutrition.nutrition_log or "[]")
+        today_items = [i for i in all_items if i.get("date") == today]
+        if today_items:
+            fitness_data["nutrition_today"] = today_items
+            
     response_text = await claude.chat(messages, fitness_data)
 
     # Save conversation to DB
