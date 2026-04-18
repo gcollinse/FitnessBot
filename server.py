@@ -238,11 +238,12 @@ async def analyze_photo(request: Request, db: Session = Depends(get_db)):
                 "model": "claude-sonnet-4-6",
                 "max_tokens": 1024,
                 "system": (
-                    "You are a nutrition expert analyzing food photos. "
-                    "Estimate calories and macros. Use imperial units. "
-                    "Be practical and direct. State portion size assumptions. "
-                    "Format your response clearly with the food name, portion, calories, protein, carbs, and fat."
-                ),
+    "You are a nutrition expert analyzing food photos. "
+    "Estimate calories and macros. Use imperial units. "
+    "Be practical and direct. State portion size assumptions. "
+    "Format your response clearly with the food name, portion, calories, protein, carbs, and fat. "
+    "End your response with a JSON block like: {\"description\": \"...\", \"calories\": 0, \"protein_g\": 0, \"carbs_g\": 0, \"fat_g\": 0}"
+),
                 "messages": [{
                     "role": "user",
                     "content": [
