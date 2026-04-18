@@ -34,7 +34,11 @@ claude = ClaudeChat()
 @app.on_event("startup")
 def startup():
     init_db()
-
+    
+@app.get("/")
+def root():
+    with open("onboarding.html") as f:
+        return HTMLResponse(f.read())
 
 # ─── CHAT API ────────────────────────────────────────────────────────────────
 
