@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Login from './pages/Login'
 import Onboarding from './pages/Onboarding'
 import Chat from './pages/Chat'
@@ -6,6 +6,16 @@ import Chat from './pages/Chat'
 export default function App() {
   const [user, setUser] = useState(null)
   const [onboarded, setOnboarded] = useState(false)
+
+  useEffect(() => {
+    // Check if user_id is in URL (coming from onboarding.html)
+    const params = new URLSearchParams(window.location.search)
+    const userId = params.get('user_id')
+    if (userId) {
+      setUser({ telegramId: userId, firstName: '' })
+      setOnboarded(true)
+    }
+  }, [])
 
   if (!user) {
     return <Login onLogin={(u) => setUser(u)} />
