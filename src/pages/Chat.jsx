@@ -33,7 +33,10 @@ export default function Chat({ telegramId, firstName }) {
   const fileInputRef = useRef(null)
 
   useEffect(() => {
-    if (telegramId) fetchDailySummary()
+    if (telegramId) {
+      fetchDailySummary()
+      fetchConversationHistory()
+    }
   }, [telegramId])
 
   useEffect(() => {
@@ -55,6 +58,26 @@ export default function Chat({ telegramId, firstName }) {
       ])
     } catch (e) {
       console.error('Failed to fetch daily summary', e)
+    }
+  }
+
+  async function fetchConversationHistory() {
+    try {
+      const res = await fetch(`/api/conversation/${telegramId}`)
+      if (!res.ok) return
+      const data = await res.json()
+      if (data.messages && data.messages.length > 0) {
+        setShowWelcome(false)
+        const displayed = data.messages.map(m => ({
+          role: m.role === 'assistant' ? 'ai' : 'user',
+          text: m.content,
+          time: '',
+        }))
+        setMessages(displayed)
+        historyRef.current = data.messages
+      }
+    } catch (e) {
+      console.error('Failed to fetch conversation history', e)
     }
   }
 
@@ -112,7 +135,6 @@ export default function Chat({ telegramId, firstName }) {
     setShowWelcome(false)
     setLoading(true)
 
-    // Show preview message
     const previewUrl = URL.createObjectURL(file)
     setMessages(prev => [...prev, {
       role: 'user',
@@ -217,9 +239,11 @@ export default function Chat({ telegramId, firstName }) {
                 )}
                 {m.role === 'ai' ? formatAIText(m.text) : m.text}
               </div>
-              <div className={`${styles.meta} ${m.role === 'user' ? styles.metaRight : ''}`}>
-                {m.time}{m.role === 'ai' ? ' · MST' : ''}
-              </div>
+              {m.time && (
+                <div className={`${styles.meta} ${m.role === 'user' ? styles.metaRight : ''}`}>
+                  {m.time}{m.role === 'ai' ? ' · MST' : ''}
+                </div>
+              )}
             </div>
           </div>
         ))}
