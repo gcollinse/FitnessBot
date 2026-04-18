@@ -12,7 +12,7 @@ const DEFAULT_STATS = [
 
 const SUGGESTIONS = [
   "How's my recovery this week?",
-  'Plan today\'s workout',
+  "Plan today's workout",
   'Analyze my sleep trends',
   'Show last run breakdown',
 ]
@@ -30,12 +30,10 @@ export default function Chat({ telegramId, firstName }) {
   const historyRef = useRef([])
   const messagesEndRef = useRef(null)
   const textareaRef = useRef(null)
+  const fileInputRef = useRef(null)
 
-  // Load stats strip on mount
   useEffect(() => {
-    if (telegramId) {
-      fetchDailySummary()
-    }
+    if (telegramId) fetchDailySummary()
   }, [telegramId])
 
   useEffect(() => {
@@ -47,10 +45,9 @@ export default function Chat({ telegramId, firstName }) {
       const res = await fetch(`/api/daily-summary/${telegramId}`)
       if (!res.ok) return
       const data = await res.json()
-
       setStats([
-        { label: 'Recovery',   value: data.recovery ? `${data.recovery}%` : '—',          good: data.recovery >= 67, warn: data.recovery < 34 },
-        { label: 'HRV',        value: data.hrv ? `${Math.round(data.hrv)}ms` : '—',        good: true },
+        { label: 'Recovery',   value: data.recovery ? `${data.recovery}%` : '—', good: data.recovery >= 67, warn: data.recovery < 34 },
+        { label: 'HRV',        value: data.hrv ? `${Math.round(data.hrv)}ms` : '—', good: true },
         { label: 'Sleep',      value: data.sleep ? `${data.sleep}%` : '—' },
         { label: 'Resting HR', value: data.resting_hr ? `${data.resting_hr}bpm` : '—' },
         { label: 'Last Run',   value: data.last_run || '—' },
@@ -90,18 +87,13 @@ export default function Chat({ telegramId, firstName }) {
 
       const data = await res.json()
 
-      // Update history ref for next message
       historyRef.current = [
         ...historyRef.current,
         { role: 'user', content: msg },
         { role: 'assistant', content: data.text },
       ].slice(-40)
 
-      setMessages(prev => [...prev, {
-        role: 'ai',
-        text: data.text,
-        time: now(),
-      }])
+      setMessages(prev => [...prev, { role: 'ai', text: data.text, time: now() }])
     } catch (e) {
       setMessages(prev => [...prev, {
         role: 'ai',
@@ -110,6 +102,48 @@ export default function Chat({ telegramId, firstName }) {
       }])
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handlePhotoUpload(e) {
+    const file = e.target.files[0]
+    if (!file) return
+
+    setShowWelcome(false)
+    setLoading(true)
+
+    // Show preview message
+    const previewUrl = URL.createObjectURL(file)
+    setMessages(prev => [...prev, {
+      role: 'user',
+      text: '📸 Food photo',
+      image: previewUrl,
+      time: now(),
+    }])
+
+    try {
+      const formData = new FormData()
+      formData.append('photo', file)
+      formData.append('telegram_id', telegramId)
+
+      const res = await fetch('/api/analyze-photo', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!res.ok) throw new Error('Photo analysis failed')
+      const data = await res.json()
+
+      setMessages(prev => [...prev, { role: 'ai', text: data.text, time: now() }])
+    } catch (e) {
+      setMessages(prev => [...prev, {
+        role: 'ai',
+        text: `Sorry, couldn't analyze that photo: ${e.message}`,
+        time: now(),
+      }])
+    } finally {
+      setLoading(false)
+      e.target.value = ''
     }
   }
 
@@ -127,7 +161,6 @@ export default function Chat({ telegramId, firstName }) {
 
   return (
     <div className={styles.page}>
-      {/* Nav */}
       <nav className={styles.nav}>
         <div className={styles.navLeft}>
           <div className={styles.navLogoMark}>
@@ -146,7 +179,6 @@ export default function Chat({ telegramId, firstName }) {
         </div>
       </nav>
 
-      {/* Stats strip */}
       <div className={styles.statsStrip}>
         {stats.map(s => (
           <div key={s.label} className={styles.statItem}>
@@ -156,7 +188,6 @@ export default function Chat({ telegramId, firstName }) {
         ))}
       </div>
 
-      {/* Messages */}
       <div className={styles.messages}>
         {showWelcome && (
           <div className={styles.welcome}>
@@ -181,6 +212,9 @@ export default function Chat({ telegramId, firstName }) {
             <div>
               {m.role === 'ai' && <div className={styles.aiName}>FITSTACK AI</div>}
               <div className={styles.bubble}>
+                {m.image && (
+                  <img src={m.image} alt="food" style={{ width: '100%', borderRadius: '8px', marginBottom: '6px' }} />
+                )}
                 {m.role === 'ai' ? formatAIText(m.text) : m.text}
               </div>
               <div className={`${styles.meta} ${m.role === 'user' ? styles.metaRight : ''}`}>
@@ -206,7 +240,6 @@ export default function Chat({ telegramId, firstName }) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
       <div className={styles.inputArea}>
         <div className={styles.cmdRow}>
           {["🥗 /nutrition", "↺ /refresh", "How should I train today?", "How am I trending this month?"].map(c => (
@@ -214,6 +247,25 @@ export default function Chat({ telegramId, firstName }) {
           ))}
         </div>
         <div className={styles.inputRow}>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handlePhotoUpload}
+          />
+          <button
+            className={styles.photoBtn}
+            onClick={() => fileInputRef.current?.click()}
+            disabled={loading}
+            title="Analyze food photo"
+          >
+            <svg viewBox="0 0 20 20" fill="none" width="18" height="18">
+              <rect x="2" y="5" width="16" height="12" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+              <circle cx="10" cy="11" r="3" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M7 5l1.5-2h3L13 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          </button>
           <textarea
             ref={textareaRef}
             className={styles.input}
@@ -234,7 +286,6 @@ export default function Chat({ telegramId, firstName }) {
   )
 }
 
-// Render *bold* from Claude's Telegram-style formatting
 function formatAIText(text) {
   if (!text) return ''
   const parts = text.split(/(\*[^*]+\*)/)
