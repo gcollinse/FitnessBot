@@ -328,5 +328,10 @@ async def strava_callback(code: str, state: str, db: Session = Depends(get_db)):
 # This must come LAST — it catches all routes not matched above
 # Run `npm run build` in the frontend folder first, then copy dist/ here
 
+@app.get("/chat")
+@app.get("/chat/{path:path}")
+def serve_chat(path: str = ""):
+    return HTMLResponse(open("dist/index.html").read())
+
 if os.path.exists("dist"):
-    app.mount("/", StaticFiles(directory="dist", html=True), name="static")
+    app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
