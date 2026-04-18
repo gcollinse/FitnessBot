@@ -210,6 +210,56 @@ async def finish_signup(request: Request, db: Session = Depends(get_db)):
             raise HTTPException(status_code=400, detail="Could not send Telegram message.")
 
     return {"status": "ok"}
+@app.post("/api/analyze-photo")
+async def analyze_photo(request: Request, db: Session = Depends(get_db)):
+    import base64
+    import re
+
+    form = await request.form()
+    telegram_id = form.get("telegram_id")
+    file = form.get("photo")
+
+    if not file or not telegram_id:
+        raise HTTPException(status_code=400, detail="Missing photo or telegram_id")
+
+    image_bytes = await file.read()
+    image_b64 = base64.b64encode(image_bytes).decode("utf-8")
+    media_type = file.content_type or "image/jpeg"
+
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": os.getenv("ANTHROPIC_API_KEY"),
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": "claude-sonnet-4-6",
+                "max_tokens": 1024,
+                "system": (
+                    "You are a nutrition expert analyzing food photos. "
+                    "Estimate calories and macros. Use imperial units. "
+                    "Be practical and direct. State portion size assumptions. "
+                    "Format your response clearly with the food name, portion, calories, protein, carbs, and fat."
+                ),
+                "messages": [{
+                    "role": "user",
+                    "content": [
+                        {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": image_b64}},
+                        {"type": "text", "text": "Nutrition breakdown?"}
+                    ]
+                }]
+            },
+            timeout=30.0
+        )
+        data = resp.json()
+
+    if "error" in data:
+        raise HTTPException(status_code=500, detail=data["error"].get("message", "Claude error"))
+
+    response_text = data["content"][0]["text"]
+    return {"text": response_text}
 
 
 # ─── WHOOP OAUTH ─────────────────────────────────────────────────────────────
