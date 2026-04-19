@@ -287,6 +287,15 @@
       document.getElementById('launch-btn').textContent = 'Launch FitStack AI →';
     }
   }
+
+ // Auto-skip to web signup if coming from /connect
+if (window.location.pathname === '/connect') {
+  showWebSignup()
+}
 </script>
 </body>
 </html>
+
+
+
+
