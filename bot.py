@@ -88,18 +88,34 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 db.commit()
     finally:
         db.close()
+        
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = str(update.effective_user.id)
+    
+    tokens = get_user_tokens(user_id)
+    
+    if tokens and (tokens.whoop_refresh_token or tokens.strava_refresh_token or tokens.hevy_api_key):
+        # Already connected — go straight to chat
+        await update.message.reply_text(
+            "👋 Hey! I'm your FitStack AI.\n\n"
+            "I can see your Whoop, Strava, and Hevy data.\n\n"
+            "Just ask me anything:\n"
+            "• \"How's my recovery today?\"\n"
+            "• \"What should I train?\"\n"
+            "• \"How's my week looking?\"\n\n"
+            "📸 Send a food photo for nutrition estimates!\n\n"
+            "/nutrition — today's food log\n"
+            "/refresh — refresh data"
+        )
+    else:
+        # Not connected — send onboarding link
+        await update.message.reply_text(
+            "👋 Hey! I'm your FitStack AI.\n\n"
+            "To get started, connect your fitness apps:\n"
+            "👉 https://fitstack-ai.up.railway.app/connect\n\n"
+            "Once you're set up, come back here and ask me anything!"
+        )
 
-    await update.message.reply_text(
-        "👋 Hey! I'm your FitStack AI.\n\n"
-        "I can see your Whoop, Strava, and Hevy data.\n\n"
-        "Just ask me anything:\n"
-        "• \"How's my recovery today?\"\n"
-        "• \"What should I train?\"\n"
-        "• \"How's my week looking?\"\n\n"
-        "📸 Send a food photo for nutrition estimates!\n\n"
-        "/nutrition — today's food log\n"
-        "/refresh — refresh data"
-    )
 
 
 async def refresh(update: Update, context: ContextTypes.DEFAULT_TYPE):
