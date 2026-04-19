@@ -80,6 +80,13 @@ async def chat(request: Request, db: Session = Depends(get_db)):
             
     response_text = await claude.chat(messages, fitness_data)
 
+    # Clear history if it's a new day
+    if existing:
+        last_msg_date = convo.updated_at.strftime("%Y-%m-%d") if convo.updated_at else None
+        today_date = datetime.utcnow().strftime("%Y-%m-%d")
+        if last_msg_date and last_msg_date != today_date:
+            existing = []
+            
     # Save conversation to DB
     convo = db.query(Conversation).filter_by(telegram_id=telegram_id).first()
     if not convo:
