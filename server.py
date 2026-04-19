@@ -453,7 +453,11 @@ async def strava_callback(code: str, state: str, db: Session = Depends(get_db)):
         <script>window.close();</script>
         </body></html>
     """)
-
+    
+@app.get("/connect")
+def connect():
+    with open("onboarding.html") as f:
+        return HTMLResponse(f.read())
 
 # ─── SERVE REACT FRONTEND ────────────────────────────────────────────────────
 # This must come LAST — it catches all routes not matched above
