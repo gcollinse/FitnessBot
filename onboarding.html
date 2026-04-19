@@ -1,3 +1,6 @@
+Onboarding v2 · HTML
+Copy
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -57,6 +60,19 @@
   .launch-btn { width: 100%; background: var(--green); border: none; border-radius: 12px; padding: 14px 20px; font-size: 15px; font-weight: 500; color: white; cursor: pointer; font-family: var(--body); margin-top: 20px; transition: filter 0.15s, transform 0.15s; }
   .launch-btn:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
   .launch-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
+ 
+  /* Platform choice */
+  .platform-choice { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+  .platform-btn { display: flex; align-items: center; gap: 12px; width: 100%; background: var(--bg2); border: 1px solid var(--border2); border-radius: 12px; padding: 14px 16px; font-size: 14px; font-weight: 500; color: var(--text); cursor: pointer; font-family: var(--body); transition: all 0.15s; text-decoration: none; }
+  .platform-btn:hover { border-color: var(--green); background: var(--green-lt); }
+  .platform-btn .platform-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .platform-btn .platform-text { text-align: left; }
+  .platform-btn .platform-title { font-size: 14px; font-weight: 500; color: var(--text); display: block; }
+  .platform-btn .platform-sub { font-size: 12px; color: var(--text3); display: block; margin-top: 1px; }
+  .platform-divider { display: flex; align-items: center; gap: 10px; margin: 4px 0; }
+  .platform-divider span { font-size: 11px; color: var(--text3); font-family: var(--mono); white-space: nowrap; }
+  .platform-divider::before, .platform-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+ 
   .footer { margin-top: 18px; font-size: 12px; color: var(--text3); text-align: center; line-height: 1.6; }
   .footer a { color: var(--text2); text-decoration: none; }
   .footer a:hover { color: var(--green); }
@@ -81,30 +97,84 @@
   <h1 class="headline">Your fitness data,<br><span>finally talking.</span></h1>
   <p class="sub">Connect Whoop, Strava, and Hevy. Ask anything. Get answers grounded in your actual performance data.</p>
   <div class="divider"></div>
-  <div class="steps">
-    <div class="step">
-      <div class="step-num active" id="step1-num">1</div>
-      <div class="step-label">Telegram</div>
-    </div>
-    <div class="step-line" id="line1"></div>
-    <div class="step">
-      <div class="step-num" id="step2-num">2</div>
-      <div class="step-label">Connect apps</div>
-    </div>
-    <div class="step-line" id="line2"></div>
-    <div class="step">
-      <div class="step-num" id="step3-num">3</div>
-      <div class="step-label">Launch</div>
+ 
+  <!-- Section 0: Platform choice -->
+  <div class="section active" id="section0">
+    <div class="section-label">Choose how to access</div>
+    <div class="platform-choice">
+      <a class="platform-btn" href="https://t.me/FitBrainAI_bot" target="_blank">
+        <div class="platform-icon" style="background:#e8f4fd;">
+          <svg viewBox="0 0 24 24" fill="#2AABEE" width="20" height="20">
+            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.04 9.607c-.148.658-.538.817-1.09.508l-3.01-2.218-1.454 1.398c-.16.16-.296.296-.607.296l.215-3.053 5.566-5.028c.242-.215-.053-.334-.374-.12L6.68 14.875l-2.95-.92c-.641-.2-.654-.641.134-.948l11.523-4.44c.533-.194 1.001.13.175.681z"/>
+          </svg>
+        </div>
+        <div class="platform-text">
+          <span class="platform-title">Open in Telegram</span>
+          <span class="platform-sub">Best on mobile · @FitBrainAI_bot</span>
+        </div>
+      </a>
+ 
+      <div class="platform-divider"><span>or</span></div>
+ 
+      <button class="platform-btn" onclick="showWebSignup()">
+        <div class="platform-icon" style="background:var(--green-lt);">
+          <svg viewBox="0 0 20 20" fill="none" width="20" height="20">
+            <rect x="2" y="3" width="16" height="12" rx="2" stroke="#2d5a27" stroke-width="1.5"/>
+            <path d="M6 17h8" stroke="#2d5a27" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M10 15v2" stroke="#2d5a27" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="platform-text">
+          <span class="platform-title">Use the web app</span>
+          <span class="platform-sub">Best on desktop · Full experience</span>
+        </div>
+      </button>
     </div>
   </div>
-  <div class="section active" id="section1">
+ 
+  <!-- Section 1: Telegram login for web -->
+  <div class="section" id="section1">
+    <div class="steps">
+      <div class="step">
+        <div class="step-num active" id="step1-num">1</div>
+        <div class="step-label">Telegram</div>
+      </div>
+      <div class="step-line" id="line1"></div>
+      <div class="step">
+        <div class="step-num" id="step2-num">2</div>
+        <div class="step-label">Connect apps</div>
+      </div>
+      <div class="step-line" id="line2"></div>
+      <div class="step">
+        <div class="step-num" id="step3-num">3</div>
+        <div class="step-label">Launch</div>
+      </div>
+    </div>
     <div class="section-label">Sign in with Telegram</div>
     <p style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6;">Make sure you've already started a chat with <strong>@FitBrainAI_bot</strong> on Telegram first.</p>
     <div class="tg-wrapper" id="tg-widget-container"></div>
     <p class="note" style="text-align:center;">Your Telegram ID is used only to identify your account.</p>
   </div>
+ 
+  <!-- Section 2: Connect apps -->
   <div class="section" id="section2">
     <div id="user-badge-area"></div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num done" id="step1-num2">✓</div>
+        <div class="step-label">Telegram</div>
+      </div>
+      <div class="step-line done"></div>
+      <div class="step">
+        <div class="step-num active" id="step2-num2">2</div>
+        <div class="step-label">Connect apps</div>
+      </div>
+      <div class="step-line" id="line2b"></div>
+      <div class="step">
+        <div class="step-num" id="step3-num2">3</div>
+        <div class="step-label">Launch</div>
+      </div>
+    </div>
     <div class="section-label">Connect your fitness apps</div>
     <button class="connect-btn" id="whoop-btn" onclick="connectWhoop()">
       <div class="connect-left"><span class="dot" style="background:#e03c3c"></span>Whoop</div>
@@ -120,19 +190,34 @@
     <button class="launch-btn" id="launch-btn" onclick="finishSignup()">Launch FitStack AI →</button>
     <div class="msg" id="result-msg"></div>
   </div>
+ 
   <p class="footer">By continuing you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.<br>Your fitness data is never sold or shared.</p>
 </div>
+ 
 <script>
   let userId = null;
   let userName = null;
-
+ 
+  function showWebSignup() {
+    document.getElementById('section0').className = 'section';
+    document.getElementById('section1').className = 'section active';
+    loadTelegramWidget();
+  }
+ 
+  function loadTelegramWidget() {
+    const script = document.createElement('script');
+    script.src = 'https://telegram.org/js/telegram-widget.js?22';
+    script.setAttribute('data-telegram-login', 'FitBrainAI_bot');
+    script.setAttribute('data-size', 'large');
+    script.setAttribute('data-onauth', 'onTelegramAuth(user)');
+    script.setAttribute('data-request-access', 'write');
+    script.async = true;
+    document.getElementById('tg-widget-container').appendChild(script);
+  }
+ 
   function onTelegramAuth(user) {
     userId = String(user.id);
     userName = user.first_name + (user.last_name ? ' ' + user.last_name : '');
-    document.getElementById('step1-num').textContent = '✓';
-    document.getElementById('step1-num').className = 'step-num done';
-    document.getElementById('line1').className = 'step-line done';
-    document.getElementById('step2-num').className = 'step-num active';
     const initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     document.getElementById('user-badge-area').innerHTML = `
       <div class="user-badge">
@@ -147,18 +232,7 @@
     document.getElementById('section1').className = 'section';
     document.getElementById('section2').className = 'section active';
   }
-
-  window.onload = function() {
-    const script = document.createElement('script');
-    script.src = 'https://telegram.org/js/telegram-widget.js?22';
-    script.setAttribute('data-telegram-login', 'FitBrainAI_bot');
-    script.setAttribute('data-size', 'large');
-    script.setAttribute('data-onauth', 'onTelegramAuth(user)');
-    script.setAttribute('data-request-access', 'write');
-    script.async = true;
-    document.getElementById('tg-widget-container').appendChild(script);
-  };
-
+ 
   function connectWhoop() {
     if (!userId) return;
     const w = window.open(`/auth/whoop/start?user_id=${userId}`, '_blank', 'width=600,height=700');
@@ -171,7 +245,7 @@
       }
     }, 500);
   }
-
+ 
   function connectStrava() {
     if (!userId) return;
     const w = window.open(`/auth/strava/start?user_id=${userId}`, '_blank', 'width=600,height=700');
@@ -184,7 +258,7 @@
       }
     }, 500);
   }
-
+ 
   async function finishSignup() {
     if (!userId) return;
     const hevyKey = document.getElementById('hevy-key').value.trim();
@@ -195,10 +269,7 @@
         body: JSON.stringify({ user_id: userId, hevy_api_key: hevyKey })
       });
     }
-    document.getElementById('step2-num').textContent = '✓';
-    document.getElementById('step2-num').className = 'step-num done';
-    document.getElementById('line2').className = 'step-line done';
-    document.getElementById('step3-num').className = 'step-num active';
+    document.getElementById('step3-num2').className = 'step-num active';
     document.getElementById('launch-btn').disabled = true;
     document.getElementById('launch-btn').textContent = 'Launching...';
     try {
@@ -207,9 +278,11 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: userId })
       });
-      document.getElementById('step3-num').textContent = '✓';
-      document.getElementById('step3-num').className = 'step-num done';
-      setTimeout(() => { window.location.href = '/chat?user_id=' + userId; }, 1000);
+      document.getElementById('step3-num2').textContent = '✓';
+      document.getElementById('step3-num2').className = 'step-num done';
+      localStorage.setItem('fitstack_user_id', userId);
+      localStorage.setItem('fitstack_first_name', userName.split(' ')[0]);
+      setTimeout(() => { window.location.href = '/chat'; }, 1000);
     } catch (e) {
       document.getElementById('result-msg').textContent = 'Could not launch. Make sure you started a chat with @FitBrainAI_bot first!';
       document.getElementById('result-msg').className = 'msg error';
