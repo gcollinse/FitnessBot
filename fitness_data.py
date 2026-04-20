@@ -227,7 +227,7 @@ class FitnessDataCollector:
                         sets = [
                             {
                                 "reps": s.get("reps"),
-                                "weight_lbs": round(s.get("weight_kg", 0) * 2.205, 1)
+                                "weight_lbs": round((s.get("weight_kg") or 0) * 2.205, 1)
                             }
                             for s in ex.get("sets", [])
                             if s.get("type") == "normal"
