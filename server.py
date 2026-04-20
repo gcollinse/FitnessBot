@@ -80,6 +80,40 @@ async def chat(request: Request, db: Session = Depends(get_db)):
 
     response_text = await claude.chat(messages, fitness_data)
 
+    # Detect and save food from text descriptions
+    food_keywords = ['ate', 'had', 'eating', 'breakfast', 'lunch', 'dinner', 'snack', 'drank', 'drink', 'meal', 'food']
+    if any(word in message.lower() for word in food_keywords):
+        try:
+            async with httpx.AsyncClient() as client:
+                food_resp = await client.post(
+                    "https://api.anthropic.com/v1/messages",
+                    headers={
+                        "x-api-key": os.getenv("ANTHROPIC_API_KEY"),
+                        "anthropic-version": "2023-06-01",
+                        "content-type": "application/json",
+                    },
+                    json={
+                        "model": "claude-sonnet-4-6",
+                        "max_tokens": 200,
+                        "system": "Extract food nutrition from the message. Respond ONLY with JSON in this exact format, no other text: {\"description\": \"food name\", \"calories\": 0, \"protein_g\": 0, \"carbs_g\": 0, \"fat_g\": 0}. If no food is mentioned, respond with: {\"description\": null}",
+                        "messages": [{"role": "user", "content": message}]
+                    },
+                    timeout=10.0
+                )
+                food_data = food_resp.json()
+                food_text = food_data["content"][0]["text"].strip()
+                nutrition = json.loads(food_text)
+                if nutrition.get("description"):
+                    nutrition["date"] = datetime.utcnow().strftime("%Y-%m-%d")
+                    convo_n = db.query(Conversation).filter_by(telegram_id=telegram_id).first()
+                    if convo_n:
+                        existing_n = json.loads(convo_n.nutrition_log or "[]")
+                        existing_n.append(nutrition)
+                        convo_n.nutrition_log = json.dumps(existing_n)
+                        db.commit()
+        except Exception:
+            pass
+    
     # Save conversation to DB
     convo = db.query(Conversation).filter_by(telegram_id=telegram_id).first()
     if not convo:
