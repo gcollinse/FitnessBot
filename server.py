@@ -69,7 +69,7 @@ async def chat(request: Request, db: Session = Depends(get_db)):
     messages = [{"role": m["role"], "content": m["content"]} for m in history]
     messages.append({"role": "user", "content": message})
 
-    # Add today's nutrition log to fitness data
+   # Add today's nutrition log to fitness data
     convo_for_nutrition = db.query(Conversation).filter_by(telegram_id=telegram_id).first()
     if convo_for_nutrition and convo_for_nutrition.nutrition_log:
         today = datetime.utcnow().strftime("%Y-%m-%d")
@@ -77,16 +77,9 @@ async def chat(request: Request, db: Session = Depends(get_db)):
         today_items = [i for i in all_items if i.get("date") == today]
         if today_items:
             fitness_data["nutrition_today"] = today_items
-            
+
     response_text = await claude.chat(messages, fitness_data)
 
-    # Clear history if it's a new day
-    if existing:
-        last_msg_date = convo.updated_at.strftime("%Y-%m-%d") if convo.updated_at else None
-        today_date = datetime.utcnow().strftime("%Y-%m-%d")
-        if last_msg_date and last_msg_date != today_date:
-            existing = []
-            
     # Save conversation to DB
     convo = db.query(Conversation).filter_by(telegram_id=telegram_id).first()
     if not convo:
@@ -94,9 +87,17 @@ async def chat(request: Request, db: Session = Depends(get_db)):
         db.add(convo)
 
     existing = json.loads(convo.messages or "[]")
+
+    # Clear history if it's a new day
+    if convo.updated_at:
+        last_msg_date = convo.updated_at.strftime("%Y-%m-%d")
+        today_date = datetime.utcnow().strftime("%Y-%m-%d")
+        if last_msg_date != today_date:
+            existing = []
+
     existing.append({"role": "user", "content": message})
     existing.append({"role": "assistant", "content": response_text})
-    convo.messages = json.dumps(existing[-40:])  # keep last 20 exchanges
+    convo.messages = json.dumps(existing[-40:])
     convo.updated_at = datetime.utcnow()
     db.commit()
 
