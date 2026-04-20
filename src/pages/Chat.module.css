@@ -4,6 +4,8 @@
   flex-direction: column;
   background: var(--bg);
   overflow: hidden;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 /* Nav */
