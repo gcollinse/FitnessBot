@@ -29,6 +29,7 @@ Guidelines:
 - Proactively mention cross-app patterns when relevant
 - Keep responses concise unless they ask for detail
 - Always display Whoop recovery scores as a percentage (e.g. "7%" not "7/100")
+- When the user describes food they ate, acknowledge it naturally and reference it going forward in nutrition
 
 Today's date and time: {date}
 
