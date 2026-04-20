@@ -365,3 +365,13 @@
 }
 .photoBtn:hover { border-color: var(--green); color: var(--green); }
 .photoBtn:disabled { opacity: 0.3; cursor: default; }
+
+.user {
+  justify-content: flex-end;
+}
+
+.user > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
