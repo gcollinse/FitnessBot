@@ -8,17 +8,25 @@ export default function App() {
   const [onboarded, setOnboarded] = useState(false)
 
   useEffect(() => {
-    // Check if user_id is in URL (coming from onboarding.html)
-    const params = new URLSearchParams(window.location.search)
-    const userId = params.get('user_id')
+    // Check localStorage first (returning users)
+    const userId = localStorage.getItem('fitstack_user_id')
+    const firstName = localStorage.getItem('fitstack_first_name')
     if (userId) {
-      setUser({ telegramId: userId, firstName: '' })
+      setUser({ telegramId: userId, firstName: firstName || '' })
+      setOnboarded(true)
+      return
+    }
+    // Fall back to URL param (coming from onboarding redirect)
+    const params = new URLSearchParams(window.location.search)
+    const urlUserId = params.get('user_id')
+    if (urlUserId) {
+      setUser({ telegramId: urlUserId, firstName: '' })
       setOnboarded(true)
     }
   }, [])
 
   if (!user) {
-    return <Login onLogin={(u) => setUser(u)} />
+    return <Login onLogin={(u) => { setUser(u) }} />
   }
 
   if (!onboarded) {
